@@ -9,13 +9,13 @@ update_interval = 15
 
 [[ publisher.products ]]
 coin_gecko_id = 'bitcoin'
-pythd_symbol = 'BTC/USD'
+pythd_symbol = 'Crypto.BTC/USD'
 
 [[ publisher.products ]]
 coin_gecko_id = 'ethereum'
-pythd_symbol = 'ETH/USD'
+pythd_symbol = 'Crypto.ETH/USD'
 
 [[ publisher.products ]]
 coin_gecko_id = 'litecoin'
-pythd_symbol = 'LTC/USD'
+pythd_symbol = 'Crypto.LTC/USD'
 
