@@ -1,9 +1,9 @@
-from typing import Dict, List
+from typing import Any, Dict, List, Tuple
 from attr import define
 import numpy as np
 from structlog import get_logger
 
-from publisher.coin_gecko import CoinGecko
+from publisher.coin_gecko import CoinGecko, Id as CoinGeckoId
 from publisher.config import Config
 from publisher.pythd import Pythd, Subscription
 from random import randint
@@ -14,10 +14,25 @@ log = get_logger()
 TRADING = 'trading'
 
 
+class CoinGeckoPriceProvider:
+
+  def __init__(self,
+    coin_gecko: CoinGecko,
+    coin_gecko_id: CoinGeckoId,
+    confidence: int) -> None:
+    self._coin_gecko = coin_gecko
+    self._coin_gecko_id = coin_gecko_id
+    self._confidence = confidence
+
+  # Returns the latest price and confidence intervals, in USD
+  def latestPrice(self) -> Tuple[int, int]:
+    return self._coin_gecko.get_price(self._coin_gecko_id), self._confidence
+
+
 @define
 class Product:
     symbol: str
-    coin_gecko_id: str
+    price_provider: Any
     product_account: str
     price_account: str
     exponent: int
@@ -57,8 +72,9 @@ class Publisher:
         # Associate the symbol with the CoinGecko ID and Pythd price account
         self.products = [
           Product(
-            product.pythd_symbol, 
-            product.coin_gecko_id,
+            product.pythd_symbol,
+            CoinGeckoPriceProvider(
+              self.coin_gecko, product.coin_gecko_id, self.config.pythd.confidence),
             pythd_products[product.pythd_symbol].account,
             pythd_products[product.pythd_symbol].prices[0].account,
             pythd_products[product.pythd_symbol].prices[0].exponent)
@@ -88,21 +104,28 @@ class Publisher:
       if subscription not in self.subscriptions:
         return
 
-      # Look up the current price of the product from CoinGecko, apply fuzz and scaling
+      # Look up the current price and confidence interval of the product
       product = self.subscriptions[subscription]
-      coin_gecko_price = self.coin_gecko.get_price(product.coin_gecko_id)
-      if not coin_gecko_price:
-        log.warn("CoinGecko price not available", symbol=product.symbol, coin_gecko_id=product.coin_gecko_id)
+      price, conf = product.price_provider.latestPrice()
+      if price is None or conf is None:
+        log.warn("latest price not available", symbol=product.symbol)
         return 
 
-      price = self.apply_exponent(
-          self.coin_gecko.get_price(product.coin_gecko_id), product.exponent)
+      # Scale the price and confidence interval using the Pyth exponent 
+      scaled_price = self.apply_exponent(price, product.exponent)
+      scaled_conf = self.apply_exponent(conf, product.exponent)
 
-      # Hard-code the confidence interval
-      conf = self.apply_exponent(self.config.pythd.confidence, product.exponent)
-      
-      log.debug("sending update_price", product_account=product.product_account, price_account=product.price_account, price=price, conf=conf)
-      await self.pythd.update_price(product.price_account, price, conf, TRADING)
+      # Send the price update
+      log.debug("sending update_price",
+        product_account=product.product_account,
+        price_account=product.price_account,
+        price=scaled_price,
+        conf=scaled_conf)
+      await self.pythd.update_price(
+        product.price_account,
+        scaled_price,
+        scaled_conf,
+        TRADING)
 
     def apply_exponent(self, x: float, exp: int) -> int:
       return int(x * (10 ** (-exp)))
