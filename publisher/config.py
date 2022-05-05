@@ -13,8 +13,6 @@ class Product:
 class Pythd:
     # The websocket endpoint
     endpoint: str
-    # The exponent on-chain prices are published with
-    exponent: int
     # The scale of the Laplace distribution used to sample confidence values
     confidence_scale: int
     # The maximum percentage of fuzzing to apply to price updates
