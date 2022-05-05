@@ -99,7 +99,7 @@ class Publisher:
           self.coin_gecko.get_price(product.coin_gecko_id), product.exponent)
 
       # Hard-code the confidence interval to be the fuzz factor
-      conf = self.config.pythd.confidence_scale
+      conf = self.apply_exponent(self.config.pythd.confidence_scale, product.exponent)
       
       log.debug("sending update_price", product_account=product.product_account, price_account=product.price_account, price=price, conf=conf)
       await self.pythd.update_price(product.price_account, price, conf, TRADING)
