@@ -105,4 +105,4 @@ class Publisher:
       await self.pythd.update_price(product.price_account, price, conf, TRADING)
 
     def apply_exponent(self, x: float, exp: int) -> int:
-      return x * (10 ** (exp))
+      return int(x * (10 ** (-exp)))
