@@ -96,20 +96,13 @@ class Publisher:
         return 
 
       price = self.apply_exponent(
-        self.apply_fuzz(
-          self.coin_gecko.get_price(product.coin_gecko_id)
-        ), product.exponent)
+          self.coin_gecko.get_price(product.coin_gecko_id), product.exponent)
 
       # Hard-code the confidence interval to be the fuzz factor
       conf = self.apply_exponent(abs(np.random.laplace(0., self.config.pythd.confidence_scale, 2))[0] * 10, product.exponent)
       
       log.debug("sending update_price", product_account=product.product_account, price_account=product.price_account, price=price, conf=conf)
       await self.pythd.update_price(product.price_account, price, conf, TRADING)
-
-
-    def apply_fuzz(self, x: float) -> float:
-      factor = randint(0, self.config.pythd.fuzz_factor_pct)
-      return x * (1 + factor)
 
     def apply_exponent(self, x: float, exp: int) -> int:
       return x * (10 ** (exp))

@@ -15,8 +15,6 @@ class Pythd:
     endpoint: str
     # The scale of the Laplace distribution used to sample confidence values
     confidence_scale: int
-    # The maximum percentage of fuzzing to apply to price updates
-    fuzz_factor_pct: int
 
 
 @ts.settings
