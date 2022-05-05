@@ -13,8 +13,8 @@ class Product:
 class Pythd:
     # The websocket endpoint
     endpoint: str
-    # The scale of the Laplace distribution used to sample confidence values
-    confidence_scale: int
+    # The confidence interval to use for all updates
+    confidence: int
 
 
 @ts.settings

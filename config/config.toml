@@ -1,6 +1,6 @@
 [publisher.pythd]
 endpoint = 'ws://127.0.0.1:8910'
-confidence_scale = 1
+confidence = 10
 
 [publisher.coin_gecko]
 update_interval_secs = 15
