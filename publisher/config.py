@@ -13,15 +13,14 @@ class Product:
 class Pythd:
     # The websocket endpoint
     endpoint: str
-    # The confidence interval to use for all updates
-    confidence: int
 
 
 @ts.settings
 class CoinGecko:
     # How often to poll CoinGecko for price information
     update_interval_secs: int
-
+    # The confidence interval to use for CoinGecko updates
+    confidence: int
 
 @ts.settings
 class Config:

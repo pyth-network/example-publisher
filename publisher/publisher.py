@@ -74,7 +74,7 @@ class Publisher:
           Product(
             product.pythd_symbol,
             CoinGeckoPriceProvider(
-              self.coin_gecko, product.coin_gecko_id, self.config.pythd.confidence),
+              self.coin_gecko, product.coin_gecko_id, self.config.coin_gecko.confidence),
             pythd_products[product.pythd_symbol].account,
             pythd_products[product.pythd_symbol].prices[0].account,
             pythd_products[product.pythd_symbol].prices[0].exponent)
