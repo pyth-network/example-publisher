@@ -17,7 +17,7 @@ TRADING = "trading"
 @dataclass
 class Price:
     account: str
-
+    exponent: int = field(metadata=config(field_name="price_exponent"))
 
 @dataclass_json
 @dataclass
