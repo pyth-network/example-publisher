@@ -14,10 +14,10 @@ USD = 'usd'
 
 class CoinGecko:
 
-    def __init__(self, update_interval: int) -> None:
+    def __init__(self, update_interval_secs: int) -> None:
         self._api: CoinGeckoAPI = CoinGeckoAPI()
         self._prices: DefaultDict[Id, Price] = defaultdict(Price)
-        self._update_interval = update_interval
+        self._update_interval_secs = update_interval_secs
 
 
     def start(self):
@@ -31,7 +31,7 @@ class CoinGecko:
     async def _update_loop(self) -> None:
         while True:
             self._update_prices()
-            await asyncio.sleep(self._update_interval)
+            await asyncio.sleep(self._update_interval_secs)
 
 
     def _update_prices(self) -> None:

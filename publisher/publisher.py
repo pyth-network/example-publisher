@@ -26,7 +26,7 @@ class Publisher:
 
     def __init__(self, config: Config) -> None:
         self.config: Config = config
-        self.coin_gecko: CoinGecko = CoinGecko(update_interval=config.coin_gecko.update_interval)
+        self.coin_gecko: CoinGecko = CoinGecko(update_interval_secs=config.coin_gecko.update_interval_secs)
         self.pythd: Pythd = Pythd(address=config.pythd.endpoint, on_notify_price_sched=self.on_notify_price_sched)
         self.subscriptions: Dict[Subscription, Product] = {}
         self.products: List[Product] = []

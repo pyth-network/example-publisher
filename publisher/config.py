@@ -24,7 +24,7 @@ class Pythd:
 @ts.settings
 class CoinGecko:
     # How often to poll CoinGecko for price information
-    update_interval: int
+    update_interval_secs: int
 
 
 @ts.settings

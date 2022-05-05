@@ -5,7 +5,7 @@ exponent = -5
 fuzz_factor = 10
 
 [publisher.coin_gecko]
-update_interval = 15
+update_interval_secs = 15
 
 [[ publisher.products ]]
 coin_gecko_id = 'bitcoin'
