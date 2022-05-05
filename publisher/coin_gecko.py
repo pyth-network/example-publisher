@@ -6,7 +6,7 @@ from structlog import get_logger
 
 log = get_logger()
 
-Id = str
+Id = str # The "API id" of the CoinGecko price, listed on CoinGecko page for each coin.
 Price = float
 
 USD = 'usd'
