@@ -19,6 +19,7 @@ setup(
         'jsonrpc_websocket',
         'pycoingecko>=2.2.0',
         'typed-settings>=0.11.1',
+        'terra_sdk>=2.0.6',
         ],
     extras_require=dict(
         test=[

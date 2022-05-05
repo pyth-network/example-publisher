@@ -1,7 +1,7 @@
 from typing import Any, Dict, List, Tuple
 from attr import define
-import numpy as np
 from structlog import get_logger
+from publisher.aust import AUST
 
 from publisher.coin_gecko import CoinGecko, Id as CoinGeckoId
 from publisher.config import Config
@@ -29,6 +29,16 @@ class CoinGeckoPriceProvider:
     return self._coin_gecko.get_price(self._coin_gecko_id), self._confidence
 
 
+class aUSTPriceProvider:
+
+  def __init__(self, aust: AUST) -> None:
+    self._aust = aust
+
+  # Returns the latest price and confidence intervals, in UST
+  def latestPrice(self) -> Tuple[int, int]:
+    return self._aust.get_exchange_rate(), self._aust.get_confidence()
+
+
 @define
 class Product:
     symbol: str
@@ -43,6 +53,13 @@ class Publisher:
     def __init__(self, config: Config) -> None:
         self.config: Config = config
         self.coin_gecko: CoinGecko = CoinGecko(update_interval_secs=config.coin_gecko.update_interval_secs)
+        self.aust = AUST(
+          config.aust.terra_rpc_node,
+          config.aust.chain_id,
+          config.aust.anchor_money_market_contract_address,
+          config.aust.update_interval_secs,
+          config.aust.confidence_bps
+        )
         self.pythd: Pythd = Pythd(address=config.pythd.endpoint, on_notify_price_sched=self.on_notify_price_sched)
         self.subscriptions: Dict[Subscription, Product] = {}
         self.products: List[Product] = []
@@ -69,24 +86,31 @@ class Publisher:
         }
         log.debug("fetched product accounts from Pythd", products=pythd_products)
 
-        # Associate the symbol with the CoinGecko ID and Pythd price account
-        self.products = [
-          Product(
-            product.pythd_symbol,
-            CoinGeckoPriceProvider(
-              self.coin_gecko, product.coin_gecko_id, self.config.coin_gecko.confidence),
-            pythd_products[product.pythd_symbol].account,
-            pythd_products[product.pythd_symbol].prices[0].account,
-            pythd_products[product.pythd_symbol].prices[0].exponent)
-          for product in self.config.products
-        ]
-        log.debug("associated product symbols", products=self.products)
+        # Create the products from the config
+        for product in self.config.products:
+
+          # Source AUST from the aUSTPriceProvider, use CoinGecko for everything else
+          if product.pythd_symbol == self.config.aust.pythd_symbol:
+            provider = aUSTPriceProvider(self.aust)
+          else:
+            provider = CoinGeckoPriceProvider(
+                self.coin_gecko, product.coin_gecko_id, self.config.coin_gecko.confidence)
+
+          self.products.append(
+            Product(
+              product.pythd_symbol,
+              provider,
+              pythd_products[product.pythd_symbol].account,
+              pythd_products[product.pythd_symbol].prices[0].account,
+              pythd_products[product.pythd_symbol].prices[0].exponent)
+          )
 
 
     async def _start_fetching_prices(self):
         for product in self.config.products:
           self.coin_gecko.add_symbol(product.coin_gecko_id)
         self.coin_gecko.start()
+        self.aust.start()
 
 
     async def _subscribe_notify_price_sched(self):

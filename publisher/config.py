@@ -22,8 +22,26 @@ class CoinGecko:
     # The confidence interval to use for CoinGecko updates
     confidence: int
 
+
+@ts.settings
+class AUST:
+    # The Terra RPC node to use to query contracts
+    terra_rpc_node: str
+    # The Chain ID to connect to
+    chain_id: str
+    # The address of the Anchor Money Market contract to query the AUST exchange rate from
+    anchor_money_market_contract_address: str
+    # How often to query the exchange rate from the Anchor Money Market contract
+    update_interval_secs: int
+    # The Pythd symbol
+    pythd_symbol: str
+    # The confidence interval in basis points
+    confidence_bps: int
+
+
 @ts.settings
 class Config:
     pythd: Pythd
     coin_gecko: CoinGecko
     products: List[Product]
+    aust: AUST

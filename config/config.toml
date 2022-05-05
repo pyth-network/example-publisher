@@ -5,6 +5,18 @@ endpoint = 'ws://127.0.0.1:8910'
 update_interval_secs = 15
 confidence = 10
 
+[publisher.aust]
+terra_rpc_node = 'https://lcd.terra.dev'
+chain_id = 'columbus-5'
+anchor_money_market_contract_address = 'terra1sepfj7s0aeg5967uxnfk4thzlerrsktkpelm5s'
+update_interval_secs = 600
+pythd_symbol = 'Crypto.AUST/UST'
+confidence_bps = 10
+
+[[ publisher.products ]]
+pythd_symbol = 'Crypto.AUST/UST'
+coin_gecko_id = 'anchorust'
+
 [[ publisher.products ]]
 coin_gecko_id = 'bitcoin'
 pythd_symbol = 'Crypto.BTC/USD'
