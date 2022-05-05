@@ -1,0 +1,19 @@
+[publisher.pythd]
+endpoint = 'ws://127.0.0.1:8910'
+confidence = 10
+
+[publisher.coin_gecko]
+update_interval_secs = 15
+
+[[ publisher.products ]]
+coin_gecko_id = 'bitcoin'
+pythd_symbol = 'Crypto.BTC/USD'
+
+[[ publisher.products ]]
+coin_gecko_id = 'ethereum'
+pythd_symbol = 'Crypto.ETH/USD'
+
+[[ publisher.products ]]
+coin_gecko_id = 'litecoin'
+pythd_symbol = 'Crypto.LTC/USD'
+
