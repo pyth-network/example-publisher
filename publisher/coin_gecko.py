@@ -1,6 +1,6 @@
 import asyncio
 from collections import defaultdict
-from typing import DefaultDict
+from typing import Dict
 from pycoingecko import CoinGeckoAPI
 from structlog import get_logger
 
@@ -16,7 +16,7 @@ class CoinGecko:
 
     def __init__(self, update_interval_secs: int) -> None:
         self._api: CoinGeckoAPI = CoinGeckoAPI()
-        self._prices: DefaultDict[Id, Price] = defaultdict(Price)
+        self._prices: Dict[Id, Price] = {}
         self._update_interval_secs = update_interval_secs
 
 
@@ -25,7 +25,7 @@ class CoinGecko:
 
 
     def add_symbol(self, id_: Id) -> None:
-        self._prices[id_] = 0
+        self._prices[id_] = None
 
 
     async def _update_loop(self) -> None:
@@ -42,4 +42,4 @@ class CoinGecko:
 
 
     def get_price(self, id_: Id) -> Price:
-        return self._prices[id_]
+        return self._prices.get(id_)

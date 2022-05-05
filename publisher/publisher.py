@@ -88,6 +88,11 @@ class Publisher:
 
       # Look up the current price of the product from CoinGecko, apply fuzz and scaling
       product = self.subscriptions[subscription]
+      coin_gecko_price = self.coin_gecko.get_price(product.coin_gecko_id)
+      if not coin_gecko_price:
+        log.warn("CoinGecko price not available", symbol=product.symbol, coin_gecko_id=product.coin_gecko_id)
+        return 
+
       price = self.apply_exponent(
         self.apply_fuzz(
           self.coin_gecko.get_price(product.coin_gecko_id)
