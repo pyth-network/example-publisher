@@ -24,9 +24,12 @@ def main(config_path):
 
     publisher = Publisher(config=config)
 
-    asyncio.run(publisher.start())
-    asyncio.get_running_loop().run_forever()
+    async def run():
+        await publisher.start()
 
+    loop = asyncio.get_event_loop()
+    asyncio.ensure_future(run())
+    loop.run_forever()
 
 if __name__ == '__main__':  # pragma: no cover
     main()
