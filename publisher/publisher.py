@@ -106,7 +106,7 @@ class Publisher:
 
 
     def apply_fuzz(self, x: float) -> float:
-      factor = randint(0, self.config.pythd.fuzz_factor)
+      factor = randint(0, self.config.pythd.fuzz_factor_pct)
       return x * (1 + factor)
 
     def apply_exponent(self, x: float) -> int:

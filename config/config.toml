@@ -2,7 +2,7 @@
 endpoint = 'ws://127.0.0.1:8910'
 confidence_scale = 1
 exponent = -5
-fuzz_factor = 10
+fuzz_factor_pct = 10
 
 [publisher.coin_gecko]
 update_interval_secs = 15
