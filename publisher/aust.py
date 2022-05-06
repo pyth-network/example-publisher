@@ -53,6 +53,10 @@ class AUST:
       confidence=self._current_confidence)
 
 
+  # Checks if the current exchange rate is a sane number, and has been 
+  # updated recently.
+  # The exchange rate is extremely likely to grow slowly, and be between 1 and 2
+  # for several years, so this is a reasonable sanity-check.
   def _valid_exchange_rate(self) -> bool:
     if not self._current_exchange_rate:
       return False
