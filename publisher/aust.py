@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Tuple
 from terra_sdk.client.lcd import AsyncLCDClient
 from dataclasses_json import dataclass_json
@@ -27,6 +28,7 @@ class AUST:
     self._confidence_bps = confidence_bps
     self._current_exchange_rate = None
     self._current_confidence = None
+    self._last_updated = None
 
 
   def start(self):
@@ -36,7 +38,6 @@ class AUST:
   async def _update_loop(self) -> None:
     while True:
       await self._update_exchange_rate()
-
       await asyncio.sleep(self._update_interval_secs)
 
 
@@ -46,12 +47,25 @@ class AUST:
     )
     self._current_exchange_rate = float(epoch_state.exchange_rate)
     self._current_confidence = self._current_exchange_rate * (self._confidence_bps / 10000)
+    self._last_updated = datetime.now()
     log.debug("updated exchange rate for AUST",
       exchange_rate=self._current_exchange_rate,
       confidence=self._current_confidence)
 
 
+  def _valid_exchange_rate(self) -> bool:
+    if not self._current_exchange_rate:
+      return False
+
+    updated_minutes_ago = (datetime.now() - self._last_updated).total_seconds() / 60.0
+    return (1 < self._current_exchange_rate < 2) and (updated_minutes_ago < 30)
+
+
   def get_exchange_rate(self) -> float:
+    if not self._valid_exchange_rate():
+      log.warn("invalid exchange rate for AUST")
+      return None
+
     return self._current_exchange_rate
 
 
