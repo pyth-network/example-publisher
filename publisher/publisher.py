@@ -144,7 +144,8 @@ class Publisher:
         product_account=product.product_account,
         price_account=product.price_account,
         price=scaled_price,
-        conf=scaled_conf)
+        conf=scaled_conf,
+        symbol=product.symbol)
       await self.pythd.update_price(
         product.price_account,
         scaled_price,
