@@ -47,10 +47,11 @@ class Pythd:
         self.server = Server(self.address)
         self.server.notify_price_sched = self._notify_price_sched
         task = await self.server.ws_connect()
-        task.add_done_callback(self._on_connection_done)
+        task.add_done_callback(Pythd._on_connection_done)
 
 
-    def _on_connection_done(self, task):
+    @staticmethod
+    def _on_connection_done(task):
         log.error("pythd connection closed")
         if not task.cancelled() and task.exception() is not None:
             e = task.exception()
