@@ -1,5 +1,6 @@
 import asyncio
 from dataclasses import dataclass, field
+import sys
 from dataclasses_json import config, dataclass_json
 from typing import Awaitable, Callable, List
 from structlog import get_logger
@@ -44,7 +45,13 @@ class Pythd:
     async def connect(self) -> Server:
         self.server = Server(self.address)
         self.server.notify_price_sched = self._notify_price_sched
-        await self.server.ws_connect()
+        task = await self.server.ws_connect()
+        task.add_done_callback(self._on_connection_done)
+
+
+    def _on_connection_done(self, task):
+        log.error("pythd connection closed")
+        sys.exit(1)
 
 
     async def subscribe_price_sched(self, account: str) -> int:
