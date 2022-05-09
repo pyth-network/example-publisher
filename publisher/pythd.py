@@ -1,6 +1,7 @@
 import asyncio
 from dataclasses import dataclass, field
 import sys
+import traceback
 from dataclasses_json import config, dataclass_json
 from typing import Awaitable, Callable, List
 from structlog import get_logger
@@ -51,6 +52,9 @@ class Pythd:
 
     def _on_connection_done(self, task):
         log.error("pythd connection closed")
+        if not task.cancelled() and task.exception() is not None:
+            e = task.exception()
+            traceback.print_exception(None, e, e.__traceback__)
         sys.exit(1)
 
 
