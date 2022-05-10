@@ -1,4 +1,5 @@
 from datetime import datetime
+import sys
 from typing import Tuple
 from terra_sdk.client.lcd import AsyncLCDClient
 from dataclasses_json import dataclass_json
@@ -32,7 +33,15 @@ class AUST:
 
 
   def start(self):
-    asyncio.create_task(self._update_loop())
+    asyncio.create_task(self._checked_update_loop())
+
+
+  async def _checked_update_loop(self) -> None:
+      try:
+          await self._update_loop()
+      except:
+          log.exception("AUST update loop failed")
+          sys.exit(1)
 
 
   async def _update_loop(self) -> None:
