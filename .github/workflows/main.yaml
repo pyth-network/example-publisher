@@ -8,8 +8,7 @@ on:
 env:
   DOCKER_HUB: docker.io
   DOCKER_USER: ${{ secrets.DOCKER_IO_USER }}
-  IS_RELEASE: ${{
-    startsWith( github.ref, 'refs/tags/release-' ) ||
+  IS_RELEASE: ${{ startsWith( github.ref, 'refs/tags/release-' ) }}
 
 jobs:
    build:
