@@ -16,16 +16,3 @@ confidence_bps = 10
 [[ publisher.products ]]
 pythd_symbol = 'Crypto.AUST/UST'
 coin_gecko_id = 'anchorust'
-
-[[ publisher.products ]]
-coin_gecko_id = 'bitcoin'
-pythd_symbol = 'Crypto.BTC/USD'
-
-[[ publisher.products ]]
-coin_gecko_id = 'ethereum'
-pythd_symbol = 'Crypto.ETH/USD'
-
-[[ publisher.products ]]
-coin_gecko_id = 'litecoin'
-pythd_symbol = 'Crypto.LTC/USD'
-
