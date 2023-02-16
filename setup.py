@@ -2,9 +2,9 @@ from setuptools import setup, find_packages
 
 setup(
     name="example-publisher",
-    version="0.0.1",
-    author="Tom Pointon",
-    author_email="tom@pyth.network",
+    version="0.0.2",
+    author="Pyth Data Association",
+    author_email="",
     packages=find_packages(exclude=["tests"]),
     zip_safe=False,
     include_package_data=True,

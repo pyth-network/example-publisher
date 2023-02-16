@@ -29,7 +29,9 @@ class CoinGecko:
             await asyncio.sleep(self._update_interval_secs)
 
     def _update_prices(self) -> None:
-        result = self._api.get_price(ids=list(self._prices.keys()), vs_currencies=USD)
+        result = self._api.get_price(
+            ids=list(self._prices.keys()), vs_currencies=USD, decimals=18
+        )
         for id_, prices in result.items():
             self._prices[id_] = prices[USD]
         log.debug("updated prices from CoinGecko", prices=self._prices)
