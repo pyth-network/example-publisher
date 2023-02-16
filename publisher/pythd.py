@@ -21,6 +21,7 @@ class Price:
     account: str
     exponent: int = field(metadata=config(field_name="price_exponent"))
 
+
 @dataclass_json
 @dataclass
 class Metadata:
@@ -36,19 +37,18 @@ class Product:
 
 
 class Pythd:
-
-    def __init__(self, address: str, on_notify_price_sched: Callable[[Subscription], Awaitable]) -> None:
+    def __init__(
+        self, address: str, on_notify_price_sched: Callable[[Subscription], Awaitable]
+    ) -> None:
         self.address = address
         self.server: Server = None
         self.on_notify_price_sched = on_notify_price_sched
-
 
     async def connect(self) -> Server:
         self.server = Server(self.address)
         self.server.notify_price_sched = self._notify_price_sched
         task = await self.server.ws_connect()
         task.add_done_callback(Pythd._on_connection_done)
-
 
     @staticmethod
     def _on_connection_done(task):
@@ -58,22 +58,26 @@ class Pythd:
             traceback.print_exception(None, e, e.__traceback__)
         sys.exit(1)
 
-
     async def subscribe_price_sched(self, account: str) -> int:
-        subscription = (await self.server.subscribe_price_sched(account=account))['subscription']
-        log.debug("subscribed to price_sched", account=account, subscription=subscription)
+        subscription = (await self.server.subscribe_price_sched(account=account))[
+            "subscription"
+        ]
+        log.debug(
+            "subscribed to price_sched", account=account, subscription=subscription
+        )
         return subscription
-
 
     def _notify_price_sched(self, subscription: int) -> None:
         log.debug("notify_price_sched RPC call received", subscription=subscription)
         asyncio.get_event_loop().create_task(self.on_notify_price_sched(subscription))
 
-
     async def all_products(self) -> List[Product]:
         result = await self.server.get_product_list()
         return [Product.from_dict(d) for d in result]
 
-
-    async def update_price(self, account: str, price: int, conf: int, status: str) -> None:
-        await self.server.update_price(account=account, price=price, conf=conf, status=status)
+    async def update_price(
+        self, account: str, price: int, conf: int, status: str
+    ) -> None:
+        await self.server.update_price(
+            account=account, price=price, conf=conf, status=status
+        )
