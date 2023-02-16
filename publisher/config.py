@@ -1,6 +1,7 @@
 from typing import List, Optional
 import typed_settings as ts
 
+
 @ts.settings
 class Product:
     # The value of attr_dict["symbol"] for this product, which will be used to retrieve the price account
