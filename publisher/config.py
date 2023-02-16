@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 import typed_settings as ts
 
 @ts.settings
@@ -19,8 +19,8 @@ class Pythd:
 class CoinGecko:
     # How often to poll CoinGecko for price information
     update_interval_secs: int
-    # The confidence interval to use for CoinGecko updates
-    confidence: int
+    # The confidence interval rate (to the price) in basis points to use for CoinGecko updates
+    confidence_ratio_bps: int
 
 
 @ts.settings
@@ -42,6 +42,5 @@ class AUST:
 @ts.settings
 class Config:
     pythd: Pythd
-    coin_gecko: CoinGecko
     products: List[Product]
-    aust: AUST
+    coin_gecko: Optional[CoinGecko] = ts.option(default=None)

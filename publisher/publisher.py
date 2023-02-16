@@ -1,7 +1,6 @@
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Protocol, Tuple
 from attr import define
 from structlog import get_logger
-from publisher.aust import AUST
 
 from publisher.coin_gecko import CoinGecko, Id as CoinGeckoId
 from publisher.config import Config
@@ -13,36 +12,30 @@ log = get_logger()
 
 TRADING = 'trading'
 
+class Provider(Protocol):
+  def latestPrice(self) -> Tuple[float, float]:
+     ...
 
-class CoinGeckoPriceProvider:
+
+class CoinGeckoPriceProvider(Provider):
 
   def __init__(self,
     coin_gecko: CoinGecko,
     coin_gecko_id: CoinGeckoId,
-    confidence: int) -> None:
+    confidence_ratio_bps: int) -> None:
     self._coin_gecko = coin_gecko
     self._coin_gecko_id = coin_gecko_id
-    self._confidence = confidence
+    self._confidence_ratio_bps = confidence_ratio_bps
 
   # Returns the latest price and confidence intervals, in USD
-  def latestPrice(self) -> Tuple[int, int]:
-    return self._coin_gecko.get_price(self._coin_gecko_id), self._confidence
-
-
-class aUSTPriceProvider:
-
-  def __init__(self, aust: AUST) -> None:
-    self._aust = aust
-
-  # Returns the latest price and confidence intervals, in UST
-  def latestPrice(self) -> Tuple[int, int]:
-    return self._aust.get_exchange_rate(), self._aust.get_confidence()
-
+  def latestPrice(self) -> Tuple[float, float]:
+    price = self._coin_gecko.get_price(self._coin_gecko_id)
+    return price, price * self._confidence_ratio_bps / 10000
 
 @define
 class Product:
     symbol: str
-    price_provider: Any
+    price_provider: Provider
     product_account: str
     price_account: str
     exponent: int
@@ -52,14 +45,10 @@ class Publisher:
 
     def __init__(self, config: Config) -> None:
         self.config: Config = config
-        self.coin_gecko: CoinGecko = CoinGecko(update_interval_secs=config.coin_gecko.update_interval_secs)
-        self.aust = AUST(
-          config.aust.terra_rpc_node,
-          config.aust.chain_id,
-          config.aust.anchor_money_market_contract_address,
-          config.aust.update_interval_secs,
-          config.aust.confidence_bps
-        )
+        self.coin_gecko: CoinGecko = CoinGecko(
+           update_interval_secs=config.coin_gecko.update_interval_secs
+        ) if config.coin_gecko else None
+
         self.pythd: Pythd = Pythd(address=config.pythd.endpoint, on_notify_price_sched=self.on_notify_price_sched)
         self.subscriptions: Dict[Subscription, Product] = {}
         self.products: List[Product] = []
@@ -89,12 +78,11 @@ class Publisher:
         # Create the products from the config
         for product in self.config.products:
 
-          # Source AUST from the aUSTPriceProvider, use CoinGecko for everything else
-          if product.pythd_symbol == self.config.aust.pythd_symbol:
-            provider = aUSTPriceProvider(self.aust)
-          else:
+          if self.coin_gecko:
             provider = CoinGeckoPriceProvider(
-                self.coin_gecko, product.coin_gecko_id, self.config.coin_gecko.confidence)
+                self.coin_gecko, product.coin_gecko_id, self.config.coin_gecko.confidence_ratio_bps)
+          else:
+             raise ValueError(f"Symbol {product.pythd_symbol} has no provider.")
 
           self.products.append(
             Product(
@@ -109,9 +97,9 @@ class Publisher:
     async def _start_fetching_prices(self):
         for product in self.config.products:
           self.coin_gecko.add_symbol(product.coin_gecko_id)
-        self.coin_gecko.start()
-        self.aust.start()
-
+        
+        if self.coin_gecko:
+          self.coin_gecko.start()
 
     async def _subscribe_notify_price_sched(self):
         # Subscribe to Pythd's notify_price_sched for each product
