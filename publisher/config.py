@@ -7,7 +7,7 @@ class Product:
     # The value of attr_dict["symbol"] for this product, which will be used to retrieve the price account
     pythd_symbol: str
     # The CoinGecko API ID for this product, used to query reference prices
-    coin_gecko_id: str
+    coin_gecko_id: Optional[str] = ts.option(default=None)
 
 
 @ts.settings
@@ -42,6 +42,7 @@ class AUST:
 
 @ts.settings
 class Config:
+    provider_engine: str
     pythd: Pythd
     products: List[Product]
     coin_gecko: Optional[CoinGecko] = ts.option(default=None)

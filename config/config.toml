@@ -1,3 +1,6 @@
+[publisher]
+provider_engine = 'coin_gecko'
+
 [publisher.pythd]
 endpoint = 'ws://127.0.0.1:8910'
 

@@ -46,11 +46,15 @@ class Product:
 class Publisher:
     def __init__(self, config: Config) -> None:
         self.config: Config = config
-        self.coin_gecko: CoinGecko = (
-            CoinGecko(update_interval_secs=config.coin_gecko.update_interval_secs)
-            if config.coin_gecko
-            else None
-        )
+
+        if self.config.provider_engine == "coin_gecko":
+            if not self.config.coin_gecko:
+                raise ValueError("Missing CoinGecko config")
+            self.coin_gecko: CoinGecko = (
+                CoinGecko(update_interval_secs=config.coin_gecko.update_interval_secs)
+                if config.coin_gecko
+                else None
+            )
 
         self.pythd: Pythd = Pythd(
             address=config.pythd.endpoint,
@@ -82,14 +86,20 @@ class Publisher:
         # Create the products from the config
         for product in self.config.products:
 
-            if self.coin_gecko:
+            if self.config.provider_engine == "coin_gecko":
+                if not product.coin_gecko_id:
+                    raise ValueError(
+                        f"Undefined coin gecko id for product {product.pythd_symbol}"
+                    )
                 provider = CoinGeckoPriceProvider(
                     self.coin_gecko,
                     product.coin_gecko_id,
                     self.config.coin_gecko.confidence_ratio_bps,
                 )
             else:
-                raise ValueError(f"Symbol {product.pythd_symbol} has no provider.")
+                raise ValueError(
+                    f"Unrecognized provider engine {self.config.provider_engine}"
+                )
 
             self.products.append(
                 Product(
