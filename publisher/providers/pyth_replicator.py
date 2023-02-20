@@ -45,7 +45,7 @@ class PythReplicator(Provider):
 
         while True:
             update = await self._ws.next_update()
-            log.debug("Received a WS update", update=update)
+            log.debug("Received a WS update", account_key=update.key, slot=update.slot)
             if isinstance(update, PythPriceAccount):
                 symbol = update.product.symbol
 
