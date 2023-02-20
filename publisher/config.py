@@ -3,9 +3,9 @@ import typed_settings as ts
 
 
 @ts.settings
-class Product:
-    # The value of attr_dict["symbol"] for this product, which will be used to retrieve the price account
-    pythd_symbol: str
+class CoinGeckoProduct:
+    # Symbol name. e.g., Crypto.BTC/USD
+    symbol: str
     # The CoinGecko API ID for this product, used to query reference prices
     coin_gecko_id: Optional[str] = ts.option(default=None)
 
@@ -17,32 +17,28 @@ class Pythd:
 
 
 @ts.settings
-class CoinGecko:
+class CoinGeckoConfig:
     # How often to poll CoinGecko for price information
     update_interval_secs: int
     # The confidence interval rate (to the price) in basis points to use for CoinGecko updates
     confidence_ratio_bps: int
+    products: List[CoinGeckoProduct]
 
 
 @ts.settings
-class AUST:
-    # The Terra RPC node to use to query contracts
-    terra_rpc_node: str
-    # The Chain ID to connect to
-    chain_id: str
-    # The address of the Anchor Money Market contract to query the AUST exchange rate from
-    anchor_money_market_contract_address: str
-    # How often to query the exchange rate from the Anchor Money Market contract
-    update_interval_secs: int
-    # The Pythd symbol
-    pythd_symbol: str
-    # The confidence interval in basis points
-    confidence_bps: int
+class PythReplicatorConfig:
+    http_endpoint: str
+    ws_endpoint: str
+    first_mapping: str
+    program_key: str
+    staleness_time_in_secs: int = ts.option(default=30)
+    account_update_interval_secs: int = ts.option(default=300)
 
 
 @ts.settings
 class Config:
     provider_engine: str
     pythd: Pythd
-    products: List[Product]
-    coin_gecko: Optional[CoinGecko] = ts.option(default=None)
+    product_update_interval_secs: int = ts.option(default=60)
+    coin_gecko: Optional[CoinGeckoConfig] = ts.option(default=None)
+    pyth_replicator: Optional[PythReplicatorConfig] = ts.option(default=None)

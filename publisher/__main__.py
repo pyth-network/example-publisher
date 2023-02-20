@@ -6,15 +6,15 @@ from publisher.publisher import Publisher
 import typed_settings as ts
 import click
 import logging
-from structlog import get_logger
+import structlog
 
 _DEFAULT_CONFIG_PATH = os.path.join("config", "config.toml")
 
-logging.basicConfig(
-    level=logging.DEBUG,
-)
 
-log = get_logger()
+log_level = logging._nameToLevel[os.environ.get("LOG_LEVEL", "DEBUG").upper()]
+structlog.configure(wrapper_class=structlog.make_filtering_bound_logger(log_level))
+
+log = structlog.get_logger()
 
 
 @click.command()

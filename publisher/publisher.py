@@ -1,10 +1,13 @@
-from typing import Dict, List, Protocol, Tuple
+import asyncio
+from typing import Dict, List, Optional
 from attr import define
 from structlog import get_logger
+from publisher.provider import Provider
 
-from publisher.coin_gecko import CoinGecko, Id as CoinGeckoId
+from publisher.providers.coin_gecko import CoinGecko
 from publisher.config import Config
-from publisher.pythd import Pythd, Subscription
+from publisher.providers.pyth_replicator import PythReplicator
+from publisher.pythd import Pythd, SubscriptionId
 
 
 log = get_logger()
@@ -12,70 +15,51 @@ log = get_logger()
 TRADING = "trading"
 
 
-class Provider(Protocol):
-    def latestPrice(self) -> Tuple[float, float]:
-        ...
-
-
-class CoinGeckoPriceProvider(Provider):
-    def __init__(
-        self,
-        coin_gecko: CoinGecko,
-        coin_gecko_id: CoinGeckoId,
-        confidence_ratio_bps: int,
-    ) -> None:
-        self._coin_gecko = coin_gecko
-        self._coin_gecko_id = coin_gecko_id
-        self._confidence_ratio_bps = confidence_ratio_bps
-
-    # Returns the latest price and confidence intervals, in USD
-    def latestPrice(self) -> Tuple[float, float]:
-        price = self._coin_gecko.get_price(self._coin_gecko_id)
-        return price, price * self._confidence_ratio_bps / 10000
-
-
 @define
 class Product:
     symbol: str
-    price_provider: Provider
     product_account: str
     price_account: str
     exponent: int
+    subscription_id: Optional[SubscriptionId]
 
 
 class Publisher:
     def __init__(self, config: Config) -> None:
         self.config: Config = config
 
+        if not getattr(self.config, self.config.provider_engine):
+            raise ValueError(f"Missing {self.config.provider_engine} config")
+
         if self.config.provider_engine == "coin_gecko":
-            if not self.config.coin_gecko:
-                raise ValueError("Missing CoinGecko config")
-            self.coin_gecko: CoinGecko = (
-                CoinGecko(update_interval_secs=config.coin_gecko.update_interval_secs)
-                if config.coin_gecko
-                else None
-            )
+            self.provider = CoinGecko(config.coin_gecko)
+        elif self.config.provider_engine == "pyth_replicator":
+            self.provider: Provider = PythReplicator(config.pyth_replicator)
+        else:
+            raise ValueError(f"Unknown provider {self.config.provider_engine}")
 
         self.pythd: Pythd = Pythd(
             address=config.pythd.endpoint,
             on_notify_price_sched=self.on_notify_price_sched,
         )
-        self.subscriptions: Dict[Subscription, Product] = {}
+        self.subscriptions: Dict[SubscriptionId, Product] = {}
         self.products: List[Product] = []
 
     async def start(self):
-
         await self.pythd.connect()
 
-        await self._initialize_products()
+        asyncio.create_task(self._start_product_update_loop())
 
-        await self._start_fetching_prices()
+    async def _start_product_update_loop(self):
+        await self._upd_products()
+        self.provider.start()
 
-        await self._subscribe_notify_price_sched()
+        while True:
+            await self._upd_products()
+            await self._subscribe_notify_price_sched()
+            await asyncio.sleep(self.config.product_update_interval_secs)
 
-    async def _initialize_products(self):
-
-        # Fetch all the product accounts from Pythd
+    async def _upd_products(self):
         log.debug("fetching product accounts from Pythd")
         pythd_products = {
             product.metadata.symbol: product
@@ -83,48 +67,47 @@ class Publisher:
         }
         log.debug("fetched product accounts from Pythd", products=pythd_products)
 
-        # Create the products from the config
-        for product in self.config.products:
+        old_products_by_symbol = {product.symbol: product for product in self.products}
 
-            if self.config.provider_engine == "coin_gecko":
-                if not product.coin_gecko_id:
-                    raise ValueError(
-                        f"Undefined coin gecko id for product {product.pythd_symbol}"
-                    )
-                provider = CoinGeckoPriceProvider(
-                    self.coin_gecko,
-                    product.coin_gecko_id,
-                    self.config.coin_gecko.confidence_ratio_bps,
-                )
-            else:
-                raise ValueError(
-                    f"Unrecognized provider engine {self.config.provider_engine}"
-                )
+        self.products = []
+
+        for symbol, product in pythd_products.items():
+            if not product.prices:
+                continue
+
+            subscription_id = None
+            if old_product := old_products_by_symbol.get(symbol):
+                subscription_id = old_product.subscription_id
 
             self.products.append(
                 Product(
-                    product.pythd_symbol,
-                    provider,
-                    pythd_products[product.pythd_symbol].account,
-                    pythd_products[product.pythd_symbol].prices[0].account,
-                    pythd_products[product.pythd_symbol].prices[0].exponent,
+                    symbol,
+                    product.account,
+                    product.prices[0].account,
+                    product.prices[0].exponent,
+                    subscription_id,
                 )
             )
 
-    async def _start_fetching_prices(self):
-        for product in self.config.products:
-            self.coin_gecko.add_symbol(product.coin_gecko_id)
-
-        if self.coin_gecko:
-            self.coin_gecko.start()
+        self.provider.upd_products([product.symbol for product in self.products])
 
     async def _subscribe_notify_price_sched(self):
-        # Subscribe to Pythd's notify_price_sched for each product
+        # Subscribe to Pythd's notify_price_sched for each product that
+        # is not subscribed yet. Unfortunately there is no way to unsubscribe
+        # to the prices that are no longer available.
         log.debug("subscribing to notify_price_sched")
-        self.subscriptions = {
-            await self.pythd.subscribe_price_sched(product.price_account): product
-            for product in self.products
-        }
+
+        subscriptions = {}
+        for product in self.products:
+            if not product.subscription_id:
+                subscription_id = await self.pythd.subscribe_price_sched(
+                    product.price_account
+                )
+                product.subscription_id = subscription_id
+
+            subscriptions[product.subscription_id] = product
+
+        self.subscriptions = subscriptions
 
     async def on_notify_price_sched(self, subscription: int) -> None:
 
@@ -134,17 +117,17 @@ class Publisher:
 
         # Look up the current price and confidence interval of the product
         product = self.subscriptions[subscription]
-        price, conf = product.price_provider.latestPrice()
-        if price is None or conf is None:
-            log.warn("latest price not available", symbol=product.symbol)
+        price = self.provider.latestPrice(product.symbol)
+        if not price:
+            log.info("latest price not available", symbol=product.symbol)
             return
 
         # Scale the price and confidence interval using the Pyth exponent
-        scaled_price = self.apply_exponent(price, product.exponent)
-        scaled_conf = self.apply_exponent(conf, product.exponent)
+        scaled_price = self.apply_exponent(price.price, product.exponent)
+        scaled_conf = self.apply_exponent(price.conf, product.exponent)
 
         # Send the price update
-        log.debug(
+        log.info(
             "sending update_price",
             product_account=product.product_account,
             price_account=product.price_account,
