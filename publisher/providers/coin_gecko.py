@@ -51,15 +51,15 @@ class CoinGecko(Provider):
             self._prices[id_] = prices[USD]
         log.info("updated prices from CoinGecko", prices=self._prices)
 
-    def get_price(self, id: Id) -> float:
+    def _get_price(self, id: Id) -> float:
         return self._prices.get(id, None)
 
-    def latestPrice(self, symbol: Symbol) -> Optional[Price]:
+    def latest_price(self, symbol: Symbol) -> Optional[Price]:
         id = self._symbol_to_id.get(symbol)
         if not id:
             return None
 
-        price = self.get_price(id)
+        price = self._get_price(id)
         if not price:
             return None
         return Price(price, price * self._config.confidence_ratio_bps / 10000)

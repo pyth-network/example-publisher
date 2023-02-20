@@ -17,5 +17,5 @@ class Provider(Protocol):
     def start(self):
         ...
 
-    def latestPrice(self, symbol: Symbol) -> Optional[Price]:
+    def latest_price(self, symbol: Symbol) -> Optional[Price]:
         ...

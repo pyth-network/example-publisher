@@ -117,7 +117,7 @@ class Publisher:
 
         # Look up the current price and confidence interval of the product
         product = self.subscriptions[subscription]
-        price = self.provider.latestPrice(product.symbol)
+        price = self.provider.latest_price(product.symbol)
         if not price:
             log.info("latest price not available", symbol=product.symbol)
             return

@@ -79,7 +79,7 @@ class PythReplicator(Provider):
         # but this filtering happens in the client-side and not on the server-side.
         pass
 
-    def latestPrice(self, symbol: Symbol) -> Optional[Price]:
+    def latest_price(self, symbol: Symbol) -> Optional[Price]:
         price, conf, timestamp = self._prices.get(symbol, [None, None, None])
 
         if not price or not conf or not timestamp:
