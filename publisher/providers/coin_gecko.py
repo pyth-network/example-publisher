@@ -54,7 +54,7 @@ class CoinGecko(Provider):
     def get_price(self, id: Id) -> float:
         return self._prices.get(id, None)
 
-    def latestPrice(self, symbol: str) -> Optional[Price]:
+    def latestPrice(self, symbol: Symbol) -> Optional[Price]:
         id = self._symbol_to_id.get(symbol)
         if not id:
             return None

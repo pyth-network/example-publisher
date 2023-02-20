@@ -7,7 +7,7 @@ import time
 
 from structlog import get_logger
 
-from publisher.provider import Price
+from publisher.provider import Price, Provider, Symbol
 
 from ..config import PythReplicatorConfig
 
@@ -16,7 +16,7 @@ log = get_logger()
 UnixTimestamp = int
 
 
-class PythReplicator:
+class PythReplicator(Provider):
     def __init__(self, config: PythReplicatorConfig) -> None:
         self._config = config
         self._client = PythClient(
@@ -71,7 +71,7 @@ class PythReplicator:
 
             await asyncio.sleep(self._config.account_update_interval_secs)
 
-    def upd_products(self, _: List[str]) -> None:
+    def upd_products(self, _: List[Symbol]) -> None:
         # This provider stores all the possible feeds and
         # does not care about the desired products as knowing
         # them does not improve the performance of the replicator
@@ -79,7 +79,7 @@ class PythReplicator:
         # but this filtering happens in the client-side and not on the server-side.
         pass
 
-    def latestPrice(self, symbol: str) -> Optional[Price]:
+    def latestPrice(self, symbol: Symbol) -> Optional[Price]:
         price, conf, timestamp = self._prices.get(symbol, [None, None, None])
 
         if not price or not conf or not timestamp:
