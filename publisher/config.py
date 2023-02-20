@@ -7,7 +7,7 @@ class CoinGeckoProduct:
     # Symbol name. e.g., Crypto.BTC/USD
     symbol: str
     # The CoinGecko API ID for this product, used to query reference prices
-    coin_gecko_id: Optional[str] = ts.option(default=None)
+    coin_gecko_id: str
 
 
 @ts.settings
