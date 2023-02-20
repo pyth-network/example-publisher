@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="example-publisher",
-    version="0.0.3",
+    version="0.1.0",
     author="Pyth Data Association",
     author_email="",
     packages=find_packages(exclude=["tests"]),
@@ -19,6 +19,7 @@ setup(
         "jsonrpc_websocket",
         "pycoingecko>=2.2.0",
         "typed-settings>=0.11.1",
+        "pythclient>=0.1.4",
     ],
     extras_require=dict(
         test=[

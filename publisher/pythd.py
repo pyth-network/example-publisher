@@ -9,7 +9,7 @@ from jsonrpc_websocket import Server
 
 log = get_logger()
 
-Subscription = int
+SubscriptionId = int
 Status = str
 
 TRADING = "trading"
@@ -38,7 +38,7 @@ class Product:
 
 class Pythd:
     def __init__(
-        self, address: str, on_notify_price_sched: Callable[[Subscription], Awaitable]
+        self, address: str, on_notify_price_sched: Callable[[SubscriptionId], Awaitable]
     ) -> None:
         self.address = address
         self.server: Server = None
