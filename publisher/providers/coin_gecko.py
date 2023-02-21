@@ -22,9 +22,6 @@ class CoinGecko(Provider):
         }
         self._config = config
 
-    def start(self) -> None:
-        asyncio.create_task(self._update_loop())
-
     def upd_products(self, product_symbols: List[Symbol]) -> None:
         new_prices = {}
         for coin_gecko_product in self._config.products:
