@@ -29,10 +29,7 @@ class PythReplicator(Provider):
             str, Tuple[float | None, float | None, UnixTimestamp | None]
         ] = {}
 
-    def start(self) -> None:
-        asyncio.create_task(self._ws_loop())
-
-    async def _ws_loop(self) -> None:
+    async def _update_loop(self) -> None:
         self._ws = self._client.create_watch_session()
         log.info("Creating Pyth replicator WS")
 

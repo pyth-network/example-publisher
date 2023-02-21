@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="example-publisher",
-    version="0.1.0",
+    version="0.1.1",
     author="Pyth Data Association",
     author_email="",
     packages=find_packages(exclude=["tests"]),
