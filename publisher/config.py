@@ -32,6 +32,12 @@ class PythReplicatorConfig:
     first_mapping: str
     program_key: str
     staleness_time_in_secs: int = ts.option(default=30)
+    # Manual aggregation is aggregating the prices of the publishers and ignoring
+    # the min_publishers when aggregate price status is not TRADING.
+    manual_agg_enabled: bool = ts.option(default=True)
+    # The maximum slot difference to consider a publisher for manual aggregation
+    # when the aggregate price status is not TRADING.
+    manual_agg_max_slot_diff: int = ts.option(default=25)
     account_update_interval_secs: int = ts.option(default=300)
 
 
