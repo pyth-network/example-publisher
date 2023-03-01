@@ -33,7 +33,9 @@ class PythReplicatorConfig:
     program_key: str
     staleness_time_in_secs: int = ts.option(default=30)
     # Manual aggregation is aggregating the prices of the publishers and ignoring
-    # the min_publishers when aggregate price status is not TRADING.
+    # the min_publishers when aggregate price status is not TRADING. This will improve
+    # the feed uptime but reduces the accuracy of the feed. One benefit of this feature
+    # is mirroring coming soon feeds on the target network that have some beta publishers.
     manual_agg_enabled: bool = ts.option(default=True)
     # The maximum slot difference to consider a publisher for manual aggregation
     # when the aggregate price status is not TRADING.
