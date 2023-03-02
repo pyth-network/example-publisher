@@ -127,19 +127,21 @@ class PythReplicator(Provider):
 def manual_aggregate(prices: List[float]) -> Tuple[float, float]:
     """
     This function is used to manually aggregate the prices of the active publishers. This is a very simple
-    implementation that does not get the median and confidence accurately but it is good enough for our use case.
+    implementation that does not get the aggregate and confidence accurately but it is good enough for our use case.
+    On this implementation, if the aggregate or confidence are not an element of the list, then we consider the
+    rightmost element lower than them in the list. For example, if the list is [1, 2, 3, 4] instead of using
+    median 2.5 as aggregate we use 2.
     """
     prices.sort()
-    no_prices = len(prices)
+    num_prices = len(prices)
 
-    # Ensure the price never goes below zero
-    agg_price = max(0, prices[no_prices // 2])
+    agg_price = prices[num_prices // 2]
 
-    agg_confidence_interval_left = agg_price - prices[no_prices // 4]
-    agg_confidence_interval_right = prices[no_prices * 3 // 4] - agg_price
+    agg_confidence_interval_left = agg_price - prices[num_prices // 4]
+    agg_confidence_interval_right = prices[num_prices * 3 // 4] - agg_price
 
-    # Make sure agg_price - agg_confidence interval is never negative
-    agg_confidence_interval = min(
-        agg_price, max(agg_confidence_interval_left, agg_confidence_interval_right, 0)
+    agg_confidence_interval = max(
+        agg_confidence_interval_left, agg_confidence_interval_right
     )
+
     return agg_price, agg_confidence_interval
