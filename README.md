@@ -14,7 +14,7 @@ An example configuration file can be found in [`config/config.toml`](config/conf
 
 ## Run
 ```bash
-# Install poetry if it's not installed, then run the 
+# Install poetry if it's not installed, then run the
 # following command to install the dependencies.
 poetry install
 
