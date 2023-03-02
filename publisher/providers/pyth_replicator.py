@@ -1,7 +1,7 @@
 import asyncio
 from typing import Dict, List, Optional, Tuple
 from pythclient.pythclient import PythClient
-from pythclient.pythaccounts import PythPriceAccount
+from pythclient.pythaccounts import PythPriceAccount, PythPriceStatus
 import time
 
 
@@ -46,11 +46,47 @@ class PythReplicator(Provider):
             if isinstance(update, PythPriceAccount):
                 symbol = update.product.symbol
 
-                self._prices[symbol] = [
-                    update.aggregate_price,
-                    update.aggregate_price_confidence_interval,
-                    update.timestamp,
-                ]
+                if self._prices.get(symbol) is None:
+                    self._prices[symbol] = [None, None, None]
+
+                if update.aggregate_price_status == PythPriceStatus.TRADING:
+                    self._prices[symbol] = [
+                        update.aggregate_price,
+                        update.aggregate_price_confidence_interval,
+                        update.timestamp,
+                    ]
+                elif self._config.manual_agg_enabled:
+                    # Do the manual aggregation based on the recent active publishers
+                    # and their confidence intervals if possible. This will allow us to
+                    # get an aggregate if there are some active publishers but they are
+                    # not enough to reach the min_publishers threshold.
+                    prices = []
+
+                    current_slot = update.slot
+                    for price_component in update.price_components:
+                        price = price_component.latest_price_info
+                        if (
+                            price.price_status == PythPriceStatus.TRADING
+                            and current_slot - price.pub_slot
+                            <= self._config.manual_agg_max_slot_diff
+                        ):
+                            prices.extend(
+                                [
+                                    price.price - price.confidence_interval,
+                                    price.price,
+                                    price.price + price.confidence_interval,
+                                ]
+                            )
+                            break
+
+                    if prices:
+                        agg_price, agg_confidence_interval = manual_aggregate(prices)
+
+                        self._prices[symbol] = [
+                            agg_price,
+                            agg_confidence_interval,
+                            update.timestamp,
+                        ]
 
                 log.info(
                     "Received a price update", symbol=symbol, price=self._prices[symbol]
@@ -86,3 +122,26 @@ class PythReplicator(Provider):
             return None
 
         return Price(price, conf)
+
+
+def manual_aggregate(prices: List[float]) -> Tuple[float, float]:
+    """
+    This function is used to manually aggregate the prices of the active publishers. This is a very simple
+    implementation that does not get the aggregate and confidence accurately but it is good enough for our use case.
+    On this implementation, if the aggregate or confidence are not an element of the list, then we consider the
+    rightmost element lower than them in the list. For example, if the list is [1, 2, 3, 4] instead of using
+    median 2.5 as aggregate we use 2.
+    """
+    prices.sort()
+    num_prices = len(prices)
+
+    agg_price = prices[num_prices // 2]
+
+    agg_confidence_interval_left = agg_price - prices[num_prices // 4]
+    agg_confidence_interval_right = prices[num_prices * 3 // 4] - agg_price
+
+    agg_confidence_interval = max(
+        agg_confidence_interval_left, agg_confidence_interval_right
+    )
+
+    return agg_price, agg_confidence_interval
