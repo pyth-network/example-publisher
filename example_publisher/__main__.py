@@ -1,8 +1,8 @@
 import asyncio
 import os
 import sys
-from publisher.config import Config
-from publisher.publisher import Publisher
+from example_publisher.config import Config
+from example_publisher.publisher import Publisher
 import typed_settings as ts
 import click
 import logging

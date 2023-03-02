@@ -3,7 +3,7 @@ from typing import Dict, List, Optional
 from pycoingecko import CoinGeckoAPI
 from structlog import get_logger
 
-from publisher.provider import Price, Provider, Symbol
+from example_publisher.provider import Price, Provider, Symbol
 from ..config import CoinGeckoConfig
 
 log = get_logger()

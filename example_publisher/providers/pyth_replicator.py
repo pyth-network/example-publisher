@@ -7,7 +7,7 @@ import time
 
 from structlog import get_logger
 
-from publisher.provider import Price, Provider, Symbol
+from example_publisher.provider import Price, Provider, Symbol
 
 from ..config import PythReplicatorConfig
 
