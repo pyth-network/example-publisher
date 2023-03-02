@@ -14,14 +14,13 @@ An example configuration file can be found in [`config/config.toml`](config/conf
 
 ## Run
 ```bash
-# Create and activate a virtualenv to run the publisher in
-python -m venv .venv
-. .venv/bin/activate
-pip install --upgrade setuptools pip
+# Install poetry if it's not installed, then run the
+# following command to install the dependencies.
+poetry install
 
-# Install the publisher
-pip install -e .
+# Run the tests
+poetry run pytest
 
 # Run the publisher
-python -m publisher --config=config/config.toml
+poetry run example-publisher --config config/config.toml
 ```
