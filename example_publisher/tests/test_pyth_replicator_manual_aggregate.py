@@ -1,5 +1,5 @@
 import random
-from ..providers.pyth_replicator import manual_aggregate
+from example_publisher.providers.pyth_replicator import manual_aggregate
 
 
 def test_manual_aggregate_works():
