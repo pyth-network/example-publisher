@@ -15,6 +15,9 @@ log = get_logger()
 
 UnixTimestamp = int
 
+# Any feed with >= this number of min publishers is considered "coming soon".
+COMING_SOON_MIN_PUB_THRESHOLD = 10
+
 
 class PythReplicator(Provider):
     def __init__(self, config: PythReplicatorConfig) -> None:
@@ -55,11 +58,18 @@ class PythReplicator(Provider):
                         update.aggregate_price_confidence_interval,
                         update.timestamp,
                     ]
-                elif self._config.manual_agg_enabled:
+                elif (
+                    self._config.manual_agg_enabled
+                    and update.min_publishers >= COMING_SOON_MIN_PUB_THRESHOLD
+                ):
                     # Do the manual aggregation based on the recent active publishers
                     # and their confidence intervals if possible. This will allow us to
                     # get an aggregate if there are some active publishers but they are
                     # not enough to reach the min_publishers threshold.
+                    #
+                    # Note that we only manually aggregate for feeds that are coming soon. Some feeds should go
+                    # offline outside of market hours (e.g., Equities, Metals). Manually aggregating for these feeds
+                    # can cause them to come online at unexpected times if a single data provider publishes at that time.
                     prices = []
 
                     current_slot = update.slot
