@@ -26,6 +26,22 @@ class CoinGeckoConfig:
 
 
 @ts.settings
+class JupiterProduct:
+    # Symbol name. e.g., Crypto.BTC/USD
+    symbol: str
+    # The base58 mint
+    mint: str
+    decimals: int
+
+
+@ts.settings
+class JupiterConfig:
+    base_url: str
+    # How often to poll jupiter for price information
+    update_interval_secs: int
+    products: List[JupiterProduct]
+
+@ts.settings
 class PythReplicatorConfig:
     http_endpoint: str
     ws_endpoint: str

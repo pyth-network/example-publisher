@@ -25,12 +25,14 @@ jsonrpc-websocket = "^3.1.4"
 pycoingecko = "^2.2.0"
 typed-settings = "2.0.2"
 pythclient = "^0.1.4,"
+jupiter-api-v-6-client = { path = "jupiter-api-v-6-client" }
 
 [tool.poetry.group.dev.dependencies]
 pylint = "^2.16.2"
 pep8 = "^1.7.1"
 flake8 = "^6.0.0"
-pytest = "^6.2.0"
+pytest = "^7.4.0"
+pytest-asyncio = "^0.21.1"
 
 [build-system]
 requires = ["poetry-core"]
