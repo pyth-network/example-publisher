@@ -66,3 +66,4 @@ class Config:
     product_update_interval_secs: int = ts.option(default=60)
     coin_gecko: Optional[CoinGeckoConfig] = ts.option(default=None)
     pyth_replicator: Optional[PythReplicatorConfig] = ts.option(default=None)
+    jupiter: Optional[JupiterConfig] = ts.option(default=None)

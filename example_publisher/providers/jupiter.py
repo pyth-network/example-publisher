@@ -68,16 +68,19 @@ class Jupiter(Provider):
 
     def upd_products(self, product_symbols: List[Symbol]) -> None:
         new_prices = {}
+        filtered_product_symbols = []
         for product in self._config.products:
             if product.symbol in product_symbols:
                 mint = product.mint
                 new_prices[mint] = self._prices.get(mint, None)
+                filtered_product_symbols.append(product.symbol)
             else:
                 raise ValueError(
                     f"{product.symbol} not found in available products"
                 )
 
         self._prices = new_prices
+        return filtered_product_symbols
 
     async def _update_loop(self) -> None:
         while True:

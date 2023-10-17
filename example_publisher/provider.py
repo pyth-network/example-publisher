@@ -14,7 +14,7 @@ class Price:
 
 class Provider(ABC):
     @abstractmethod
-    def upd_products(self, product_symbols: List[Symbol]):
+    def upd_products(self, product_symbols: List[Symbol]) -> List[Symbol] | None:
         ...
 
     def start(self) -> None:

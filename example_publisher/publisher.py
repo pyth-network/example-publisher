@@ -1,6 +1,7 @@
 import asyncio
 from typing import Dict, List, Optional
 from attr import define
+from example_publisher.providers.jupiter import Jupiter
 from structlog import get_logger
 from example_publisher.provider import Provider
 
@@ -35,6 +36,8 @@ class Publisher:
             self.provider = CoinGecko(config.coin_gecko)
         elif self.config.provider_engine == "pyth_replicator":
             self.provider: Provider = PythReplicator(config.pyth_replicator)
+        elif self.config.provider_engine == "jupiter":
+            self.provider: Provider = Jupiter(config.jupiter)
         else:
             raise ValueError(f"Unknown provider {self.config.provider_engine}")
 
@@ -89,7 +92,10 @@ class Publisher:
                 )
             )
 
-        self.provider.upd_products([product.symbol for product in self.products])
+        filtered_symbols = self.provider.upd_products([product.symbol for product in self.products])
+        if filtered_symbols:
+            self.products = filter(lambda p: p.symbol in filtered_symbols, self.products)
+
 
     async def _subscribe_notify_price_sched(self):
         # Subscribe to Pythd's notify_price_sched for each product that
