@@ -31,6 +31,7 @@ class PythReplicator(Provider):
         self._prices: Dict[
             str, Tuple[float | None, float | None, UnixTimestamp | None]
         ] = {}
+        self._update_accounts_task: asyncio.Task | None = None
 
     async def _update_loop(self) -> None:
         self._ws = self._client.create_watch_session()
@@ -41,7 +42,7 @@ class PythReplicator(Provider):
             self._config.program_key, await self._client.get_all_accounts()
         )
 
-        asyncio.create_task(self._update_accounts_loop())
+        self._update_accounts_task = asyncio.create_task(self._update_accounts_loop())
 
         while True:
             update = await self._ws.next_update()
