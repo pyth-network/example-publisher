@@ -13,12 +13,14 @@ class Price:
 
 
 class Provider(ABC):
+    _update_loop_task = None
+
     @abstractmethod
     def upd_products(self, product_symbols: List[Symbol]):
         ...
 
     def start(self) -> None:
-        asyncio.create_task(self._update_loop())
+        self._update_loop_task = asyncio.create_task(self._update_loop())
 
     @abstractmethod
     async def _update_loop(self):

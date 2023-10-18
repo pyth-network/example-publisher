@@ -27,6 +27,7 @@ class Product:
 class Publisher:
     def __init__(self, config: Config) -> None:
         self.config: Config = config
+        self._product_update_task: asyncio.Task | None = None
 
         if not getattr(self.config, self.config.provider_engine):
             raise ValueError(f"Missing {self.config.provider_engine} config")
@@ -48,7 +49,9 @@ class Publisher:
     async def start(self):
         await self.pythd.connect()
 
-        asyncio.create_task(self._start_product_update_loop())
+        self._product_update_task = asyncio.create_task(
+            self._start_product_update_loop()
+        )
 
     async def _start_product_update_loop(self):
         await self._upd_products()
