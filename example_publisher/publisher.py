@@ -49,7 +49,9 @@ class Publisher:
     async def start(self):
         await self.pythd.connect()
 
-        self._product_update_task = asyncio.create_task(self._start_product_update_loop())
+        self._product_update_task = asyncio.create_task(
+            self._start_product_update_loop()
+        )
 
     async def _start_product_update_loop(self):
         await self._upd_products()

@@ -70,7 +70,9 @@ class Pythd:
 
     def _notify_price_sched(self, subscription: int) -> None:
         log.debug("notify_price_sched RPC call received", subscription=subscription)
-        task = asyncio.get_event_loop().create_task(self.on_notify_price_sched(subscription))
+        task = asyncio.get_event_loop().create_task(
+            self.on_notify_price_sched(subscription)
+        )
         self._notify_price_sched_tasks.add(task)
         task.add_done_callback(lambda: self._notify_price_sched_tasks.remove(task))
 
