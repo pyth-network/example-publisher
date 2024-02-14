@@ -30,7 +30,7 @@ class CoinGecko(Provider):
                 new_prices[id] = self._prices.get(id, None)
             else:
                 raise ValueError(
-                    f"{coin_gecko_product.symbol} not found in available products"
+                    f"{coin_gecko_product.symbol} not found in available products"  # noqa: E713
                 )
 
         self._prices = new_prices

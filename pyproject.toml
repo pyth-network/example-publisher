@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "example-publisher"
-version = "1.0.2"
+version = "1.0.3"
 description = ""
 authors = []
 license = "Apache-2"
