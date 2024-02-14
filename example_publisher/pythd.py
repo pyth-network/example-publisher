@@ -43,13 +43,14 @@ class Pythd:
         self.address = address
         self.server: Server = None
         self.on_notify_price_sched = on_notify_price_sched
-        self._notify_price_sched_tasks = set()
+        self._tasks = set()
 
     async def connect(self) -> Server:
         self.server = Server(self.address)
         self.server.notify_price_sched = self._notify_price_sched
         task = await self.server.ws_connect()
         task.add_done_callback(Pythd._on_connection_done)
+        self._tasks.add(task)
 
     @staticmethod
     def _on_connection_done(task):
@@ -73,8 +74,8 @@ class Pythd:
         task = asyncio.get_event_loop().create_task(
             self.on_notify_price_sched(subscription)
         )
-        self._notify_price_sched_tasks.add(task)
-        task.add_done_callback(lambda: self._notify_price_sched_tasks.remove(task))
+        self._tasks.add(task)
+        task.add_done_callback(self._tasks.discard)
 
     async def all_products(self) -> List[Product]:
         result = await self.server.get_product_list()
