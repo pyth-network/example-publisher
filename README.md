@@ -23,4 +23,8 @@ poetry run pytest
 
 # Run the publisher
 poetry run example-publisher --config config/config.toml
+
+# Run the ronin publisher
+LOG_LEVEL="info" poetry run example-publisher --config config/ronin_config.toml
 ```
+

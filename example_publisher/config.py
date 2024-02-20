@@ -26,6 +26,24 @@ class CoinGeckoConfig:
 
 
 @ts.settings
+class RoninKatanaProduct:
+    # Symbol name. e.g., Crypto.RON/USD
+    symbol: str
+    # Katana Token Id. e.g, ronin/axs/pixel
+    id: str
+
+
+@ts.settings
+class RoninKatanaConfig:
+    # How often to poll Katana for price information
+    update_interval_secs: int
+    https_analytic_endpoint: str
+    # The confidence interval rate (to the price) in basis points to use for Katana updates
+    confidence_ratio_bps: int
+    products: List[RoninKatanaProduct]
+
+
+@ts.settings
 class PythReplicatorConfig:
     http_endpoint: str
     ws_endpoint: str
@@ -50,3 +68,4 @@ class Config:
     product_update_interval_secs: int = ts.option(default=60)
     coin_gecko: Optional[CoinGeckoConfig] = ts.option(default=None)
     pyth_replicator: Optional[PythReplicatorConfig] = ts.option(default=None)
+    ronin_katana: Optional[RoninKatanaConfig] = ts.option(default=None)

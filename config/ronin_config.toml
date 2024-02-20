@@ -1,0 +1,19 @@
+[publisher]
+
+# Set it to either 'coin_gecko' or 'pyth_replicator'. You need to provide
+# the configuration for the chosen engine as described below.
+provider_engine = 'ronin_katana'
+
+product_update_interval_secs = 60
+
+[publisher.pythd]
+endpoint = 'ws://127.0.0.1:8910'
+
+[publisher.ronin_katana]
+update_interval_secs = 30
+https_analytic_endpoint = 'https://thegraph.roninchain.com'
+confidence_ratio_bps = 10
+
+[[publisher.ronin_katana.products]]
+symbol = 'Crypto.RON/USD'
+id = 'WRON'

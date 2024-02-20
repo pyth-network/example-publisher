@@ -7,6 +7,7 @@ from example_publisher.provider import Provider
 from example_publisher.providers.coin_gecko import CoinGecko
 from example_publisher.config import Config
 from example_publisher.providers.pyth_replicator import PythReplicator
+from example_publisher.providers.ronin_katana import RoninKatana
 from example_publisher.pythd import Pythd, SubscriptionId
 
 
@@ -36,6 +37,8 @@ class Publisher:
             self.provider = CoinGecko(config.coin_gecko)
         elif self.config.provider_engine == "pyth_replicator":
             self.provider: Provider = PythReplicator(config.pyth_replicator)
+        elif self.config.provider_engine == "ronin_katana":
+            self.provider: Provider = RoninKatana(config.ronin_katana)
         else:
             raise ValueError(f"Unknown provider {self.config.provider_engine}")
 
