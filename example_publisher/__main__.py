@@ -30,7 +30,7 @@ log = structlog.get_logger()
 )
 def main(config_path):
 
-    config = ts.load(
+    config: Config = ts.load(
         cls=Config,
         appname="publisher",
         config_files=[config_path],
@@ -39,7 +39,8 @@ def main(config_path):
     publisher = Publisher(config=config)
 
     HTTPRequestHandler.publisher = publisher
-    server = HTTPServer(('', 8000), HTTPRequestHandler)
+    HTTPRequestHandler.config = config
+    server = HTTPServer(('', config.port), HTTPRequestHandler)
 
     server_thread = threading.Thread(target=server.serve_forever)
     server_thread.start()

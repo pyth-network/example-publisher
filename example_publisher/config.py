@@ -47,6 +47,8 @@ class PythReplicatorConfig:
 class Config:
     provider_engine: str
     pythd: Pythd
+    port: int
+    health_check_test_period_secs: int
     product_update_interval_secs: int = ts.option(default=60)
     coin_gecko: Optional[CoinGeckoConfig] = ts.option(default=None)
     pyth_replicator: Optional[PythReplicatorConfig] = ts.option(default=None)

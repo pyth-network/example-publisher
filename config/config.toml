@@ -3,8 +3,9 @@
 # Set it to either 'coin_gecko' or 'pyth_replicator'. You need to provide
 # the configuration for the chosen engine as described below.
 provider_engine = 'pyth_replicator'
-
 product_update_interval_secs = 10
+port = 8000
+health_check_test_period_secs = 60
 
 [publisher.pythd]
 endpoint = 'ws://127.0.0.1:8910'
