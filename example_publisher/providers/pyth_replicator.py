@@ -7,13 +7,12 @@ import time
 
 from structlog import get_logger
 
-from example_publisher.provider import Price, Provider, Symbol
+from example_publisher.provider import Price, Provider, Symbol, UnixTimestamp
 
 from ..config import PythReplicatorConfig
 
 log = get_logger()
 
-UnixTimestamp = int
 
 # Any feed with >= this number of min publishers is considered "coming soon".
 COMING_SOON_MIN_PUB_THRESHOLD = 10
@@ -51,14 +50,14 @@ class PythReplicator(Provider):
                 symbol = update.product.symbol
 
                 if self._prices.get(symbol) is None:
-                    self._prices[symbol] = [None, None, None]
+                    self._prices[symbol] = (None, None, None)
 
                 if update.aggregate_price_status == PythPriceStatus.TRADING:
-                    self._prices[symbol] = [
+                    self._prices[symbol] = (
                         update.aggregate_price,
                         update.aggregate_price_confidence_interval,
                         update.timestamp,
-                    ]
+                    )
                 elif (
                     self._config.manual_agg_enabled
                     and update.min_publishers >= COMING_SOON_MIN_PUB_THRESHOLD
@@ -93,11 +92,11 @@ class PythReplicator(Provider):
                     if prices:
                         agg_price, agg_confidence_interval = manual_aggregate(prices)
 
-                        self._prices[symbol] = [
+                        self._prices[symbol] = (
                             agg_price,
                             agg_confidence_interval,
                             update.timestamp,
-                        ]
+                        )
 
                 log.info(
                     "Received a price update", symbol=symbol, price=self._prices[symbol]
@@ -132,7 +131,7 @@ class PythReplicator(Provider):
         if time.time() - timestamp > self._config.staleness_time_in_secs:
             return None
 
-        return Price(price, conf)
+        return Price(price, conf, timestamp)
 
 
 def manual_aggregate(prices: List[float]) -> Tuple[float, float]:

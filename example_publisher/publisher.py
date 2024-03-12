@@ -45,6 +45,7 @@ class Publisher:
         )
         self.subscriptions: Dict[SubscriptionId, Product] = {}
         self.products: List[Product] = []
+        self.last_successful_update: Optional[float] = None
 
     async def start(self):
         await self.pythd.connect()
@@ -61,6 +62,7 @@ class Publisher:
             await self._upd_products()
             await self._subscribe_notify_price_sched()
             await asyncio.sleep(self.config.product_update_interval_secs)
+            print(self.last_successful_update)
 
     async def _upd_products(self):
         log.debug("fetching product accounts from Pythd")
@@ -141,6 +143,7 @@ class Publisher:
         await self.pythd.update_price(
             product.price_account, scaled_price, scaled_conf, TRADING
         )
+        self.last_successful_update = price.timestamp
 
     def apply_exponent(self, x: float, exp: int) -> int:
         return int(x * (10 ** (-exp)))
