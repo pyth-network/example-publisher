@@ -40,7 +40,7 @@ def main(config_path):
 
     HTTPRequestHandler.publisher = publisher
     HTTPRequestHandler.config = config
-    server = HTTPServer(('', config.port), HTTPRequestHandler)
+    server = HTTPServer(("", config.port), HTTPRequestHandler)
 
     server_thread = threading.Thread(target=server.serve_forever)
     server_thread.start()

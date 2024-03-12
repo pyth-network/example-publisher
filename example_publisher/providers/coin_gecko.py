@@ -48,7 +48,11 @@ class CoinGecko(Provider):
         )
         for id_, prices in result.items():
             price = prices[USD]
-            self._prices[id_] = Price(price, price * self._config.confidence_ratio_bps / 10000, floor(time.time()))
+            self._prices[id_] = Price(
+                price,
+                price * self._config.confidence_ratio_bps / 10000,
+                floor(time.time()),
+            )
         log.info("updated prices from CoinGecko", prices=self._prices)
 
     def _get_price(self, id: Id) -> float:
