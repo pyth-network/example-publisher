@@ -1,12 +1,16 @@
 import asyncio
 import os
 import sys
+import threading
+from example_publisher.api.health_check import HTTPRequestHandler
 from example_publisher.config import Config
 from example_publisher.publisher import Publisher
 import typed_settings as ts
 import click
 import logging
 import structlog
+from http.server import HTTPServer
+
 
 _DEFAULT_CONFIG_PATH = os.path.join("config", "config.toml")
 
@@ -33,6 +37,12 @@ def main(config_path):
     )
 
     publisher = Publisher(config=config)
+
+    HTTPRequestHandler.publisher = publisher
+    server = HTTPServer(('', 8000), HTTPRequestHandler)
+
+    server_thread = threading.Thread(target=server.serve_forever)
+    server_thread.start()
 
     async def run():
         try:
