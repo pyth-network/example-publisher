@@ -55,9 +55,11 @@ class CoinGecko(Provider):
             )
         log.info("updated prices from CoinGecko", prices=self._prices)
 
-    def _get_price(self, id: Id) -> float:
+    def _get_price(self, id: Id) -> Optional[Price]:
         return self._prices.get(id, None)
 
     def latest_price(self, symbol: Symbol) -> Optional[Price]:
         id = self._symbol_to_id.get(symbol)
+        if id is None:
+            return None
         return self._get_price(id)
