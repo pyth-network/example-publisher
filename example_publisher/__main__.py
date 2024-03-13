@@ -2,7 +2,6 @@ import asyncio
 import os
 import sys
 import threading
-
 import uvicorn
 from example_publisher.config import Config
 from example_publisher.publisher import Publisher

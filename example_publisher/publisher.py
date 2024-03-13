@@ -3,7 +3,6 @@ from typing import Dict, List, Optional
 from attr import define
 from structlog import get_logger
 from example_publisher.provider import Provider
-
 from example_publisher.providers.coin_gecko import CoinGecko
 from example_publisher.config import Config
 from example_publisher.providers.pyth_replicator import PythReplicator

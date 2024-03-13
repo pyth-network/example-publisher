@@ -2,7 +2,6 @@ import time
 from example_publisher.config import Config
 from fastapi import FastAPI, status
 from fastapi.responses import JSONResponse
-
 from example_publisher.publisher import Publisher
 
 
