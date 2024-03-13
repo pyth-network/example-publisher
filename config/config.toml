@@ -6,7 +6,9 @@ provider_engine = 'pyth_replicator'
 
 product_update_interval_secs = 10
 health_check_port = 8000
-health_check_test_period_secs = 60
+
+# The health check will return a failure status if no price data has been published within the specified time frame.
+health_check_threshold_secs = 60
 
 [publisher.pythd]
 endpoint = 'ws://127.0.0.1:8910'

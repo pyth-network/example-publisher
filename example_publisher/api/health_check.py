@@ -16,7 +16,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
         return (
             last_successful_update is not None
             and time.time() - last_successful_update
-            < HTTPRequestHandler.config.health_check_test_period_secs
+            < HTTPRequestHandler.config.health_check_threshold_secs
         )
 
     def do_GET(self):
