@@ -142,7 +142,11 @@ class Publisher:
         await self.pythd.update_price(
             product.price_account, scaled_price, scaled_conf, TRADING
         )
-        self.last_successful_update = max(self.last_successful_update, price.timestamp)
+        self.last_successful_update = (
+            price.timestamp
+            if self.last_successful_update is None
+            else max(self.last_successful_update, price.timestamp)
+        )
 
     def apply_exponent(self, x: float, exp: int) -> int:
         return int(x * (10 ** (-exp)))
