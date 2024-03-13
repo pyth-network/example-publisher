@@ -5,7 +5,7 @@
 provider_engine = 'pyth_replicator'
 
 product_update_interval_secs = 10
-port = 8000
+health_check_port = 8000
 health_check_test_period_secs = 60
 
 [publisher.pythd]
