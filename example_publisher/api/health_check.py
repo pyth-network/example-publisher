@@ -1,32 +1,44 @@
-from http.server import BaseHTTPRequestHandler
-import json
 import time
 from example_publisher.config import Config
-
+from fastapi import FastAPI, status
+from fastapi.responses import JSONResponse
 
 from example_publisher.publisher import Publisher
 
 
-class HTTPRequestHandler(BaseHTTPRequestHandler):
+class API(FastAPI):
     publisher: Publisher
     config: Config
 
-    def is_healthy(self):
-        last_successful_update = HTTPRequestHandler.publisher.last_successful_update
-        return (
-            last_successful_update is not None
-            and time.time() - last_successful_update
-            < HTTPRequestHandler.config.health_check_threshold_secs
+
+app = API()
+
+
+def is_healthy():
+    last_successful_update = API.publisher.last_successful_update
+    return (
+        last_successful_update is not None
+        and time.time() - last_successful_update
+        < API.config.health_check_threshold_secs
+    )
+
+
+@app.get("/health")
+def health_check():
+    healthy = is_healthy()
+    last_successful_update = API.publisher.last_successful_update
+    if not healthy:
+        return JSONResponse(
+            content={
+                "status": "error",
+                "last_successful_update": last_successful_update,
+            },
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
         )
-
-    def do_GET(self):
-        healthy = self.is_healthy()
-        data = {
-            "status": "ok" if healthy else "error",
-            "last_successful_update": HTTPRequestHandler.publisher.last_successful_update,
-        }
-
-        self.send_response(200 if healthy else 503)
-        self.send_header("Content-type", "application/json")
-        self.end_headers()
-        self.wfile.write(json.dumps(data).encode("utf-8"))
+    return JSONResponse(
+        content={
+            "status": "ok",
+            "last_successful_update": last_successful_update,
+        },
+        status_code=status.HTTP_200_OK,
+    )

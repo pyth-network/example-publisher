@@ -25,6 +25,8 @@ jsonrpc-websocket = "^3.1.4"
 pycoingecko = "^2.2.0"
 typed-settings = "2.0.2"
 pythclient = "^0.1.4,"
+fastapi = "^0.110.0"
+uvicorn = {extras = ["standard"], version = "^0.28.0"}
 
 [tool.poetry.group.dev.dependencies]
 pylint = "^2.16.2"

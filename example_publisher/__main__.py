@@ -2,15 +2,15 @@ import asyncio
 import os
 import sys
 import threading
-from example_publisher.api.health_check import HTTPRequestHandler
+
+import uvicorn
 from example_publisher.config import Config
 from example_publisher.publisher import Publisher
 import typed_settings as ts
 import click
 import logging
 import structlog
-from http.server import HTTPServer
-
+from example_publisher.api.health_check import app, API
 
 _DEFAULT_CONFIG_PATH = os.path.join("config", "config.toml")
 
@@ -38,11 +38,13 @@ def main(config_path):
 
     publisher = Publisher(config=config)
 
-    HTTPRequestHandler.publisher = publisher
-    HTTPRequestHandler.config = config
-    server = HTTPServer(("", config.health_check_port), HTTPRequestHandler)
+    API.config = config
+    API.publisher = publisher
 
-    server_thread = threading.Thread(target=server.serve_forever)
+    def run_server():
+        uvicorn.run(app, host="0.0.0.0", port=config.health_check_port)
+
+    server_thread = threading.Thread(target=run_server)
     server_thread.start()
 
     async def run():
