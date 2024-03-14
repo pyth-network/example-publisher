@@ -1,12 +1,15 @@
 import asyncio
 import os
 import sys
+import threading
+import uvicorn
 from example_publisher.config import Config
 from example_publisher.publisher import Publisher
 import typed_settings as ts
 import click
 import logging
 import structlog
+from example_publisher.api.health_check import app, API
 
 _DEFAULT_CONFIG_PATH = os.path.join("config", "config.toml")
 
@@ -26,13 +29,20 @@ log = structlog.get_logger()
 )
 def main(config_path):
 
-    config = ts.load(
+    config: Config = ts.load(
         cls=Config,
         appname="publisher",
         config_files=[config_path],
     )
 
     publisher = Publisher(config=config)
+    API.publisher = publisher
+
+    def run_server():
+        uvicorn.run(app, host="0.0.0.0", port=config.health_check_port)
+
+    server_thread = threading.Thread(target=run_server)
+    server_thread.start()
 
     async def run():
         try:

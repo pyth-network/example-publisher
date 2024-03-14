@@ -13,7 +13,6 @@ from ..config import PythReplicatorConfig
 
 log = get_logger()
 
-UnixTimestamp = int
 
 # Any feed with >= this number of min publishers is considered "coming soon".
 COMING_SOON_MIN_PUB_THRESHOLD = 10
@@ -28,9 +27,7 @@ class PythReplicator(Provider):
             first_mapping_account_key=config.first_mapping,
             program_key=config.program_key,
         )
-        self._prices: Dict[
-            str, Tuple[float | None, float | None, UnixTimestamp | None]
-        ] = {}
+        self._prices: Dict[str, Optional[Price]] = {}
         self._update_accounts_task: asyncio.Task | None = None
 
     async def _update_loop(self) -> None:
@@ -47,20 +44,25 @@ class PythReplicator(Provider):
         while True:
             update = await self._ws.next_update()
             log.debug("Received a WS update", account_key=update.key, slot=update.slot)
-            if isinstance(update, PythPriceAccount):
+            if isinstance(update, PythPriceAccount) and update.product is not None:
                 symbol = update.product.symbol
 
                 if self._prices.get(symbol) is None:
-                    self._prices[symbol] = [None, None, None]
+                    self._prices[symbol] = None
 
-                if update.aggregate_price_status == PythPriceStatus.TRADING:
-                    self._prices[symbol] = [
+                if (
+                    update.aggregate_price_status == PythPriceStatus.TRADING
+                    and update.aggregate_price is not None
+                    and update.aggregate_price_confidence_interval is not None
+                ):
+                    self._prices[symbol] = Price(
                         update.aggregate_price,
                         update.aggregate_price_confidence_interval,
                         update.timestamp,
-                    ]
+                    )
                 elif (
                     self._config.manual_agg_enabled
+                    and update.min_publishers is not None
                     and update.min_publishers >= COMING_SOON_MIN_PUB_THRESHOLD
                 ):
                     # Do the manual aggregation based on the recent active publishers
@@ -71,13 +73,14 @@ class PythReplicator(Provider):
                     # Note that we only manually aggregate for feeds that are coming soon. Some feeds should go
                     # offline outside of market hours (e.g., Equities, Metals). Manually aggregating for these feeds
                     # can cause them to come online at unexpected times if a single data provider publishes at that time.
-                    prices = []
+                    prices: List[float] = []
 
                     current_slot = update.slot
                     for price_component in update.price_components:
                         price = price_component.latest_price_info
                         if (
                             price.price_status == PythPriceStatus.TRADING
+                            and current_slot is not None
                             and current_slot - price.pub_slot
                             <= self._config.manual_agg_max_slot_diff
                         ):
@@ -93,11 +96,11 @@ class PythReplicator(Provider):
                     if prices:
                         agg_price, agg_confidence_interval = manual_aggregate(prices)
 
-                        self._prices[symbol] = [
+                        self._prices[symbol] = Price(
                             agg_price,
                             agg_confidence_interval,
                             update.timestamp,
-                        ]
+                        )
 
                 log.info(
                     "Received a price update", symbol=symbol, price=self._prices[symbol]
@@ -115,7 +118,7 @@ class PythReplicator(Provider):
 
             await asyncio.sleep(self._config.account_update_interval_secs)
 
-    def upd_products(self, _: List[Symbol]) -> None:
+    def upd_products(self, *args) -> None:
         # This provider stores all the possible feeds and
         # does not care about the desired products as knowing
         # them does not improve the performance of the replicator
@@ -124,15 +127,15 @@ class PythReplicator(Provider):
         pass
 
     def latest_price(self, symbol: Symbol) -> Optional[Price]:
-        price, conf, timestamp = self._prices.get(symbol, [None, None, None])
+        price = self._prices.get(symbol, None)
 
-        if not price or not conf or not timestamp:
+        if not price:
             return None
 
-        if time.time() - timestamp > self._config.staleness_time_in_secs:
+        if time.time() - price.timestamp > self._config.staleness_time_in_secs:
             return None
 
-        return Price(price, conf)
+        return price
 
 
 def manual_aggregate(prices: List[float]) -> Tuple[float, float]:

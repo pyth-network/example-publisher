@@ -3,13 +3,16 @@ import asyncio
 from dataclasses import dataclass
 from typing import List, Optional
 
+
 Symbol = str
+UnixTimestamp = int
 
 
 @dataclass
 class Price:
     price: float
     conf: float
+    timestamp: UnixTimestamp
 
 
 class Provider(ABC):

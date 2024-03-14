@@ -1,4 +1,6 @@
 import asyncio
+from math import floor
+import time
 from typing import Dict, List, Optional
 from pycoingecko import CoinGeckoAPI
 from structlog import get_logger
@@ -16,7 +18,7 @@ USD = "usd"
 class CoinGecko(Provider):
     def __init__(self, config: CoinGeckoConfig) -> None:
         self._api: CoinGeckoAPI = CoinGeckoAPI()
-        self._prices: Dict[Id, float] = {}
+        self._prices: Dict[Id, Price] = {}
         self._symbol_to_id: Dict[Symbol, Id] = {
             product.symbol: product.coin_gecko_id for product in config.products
         }
@@ -45,18 +47,19 @@ class CoinGecko(Provider):
             ids=list(self._prices.keys()), vs_currencies=USD, precision=18
         )
         for id_, prices in result.items():
-            self._prices[id_] = prices[USD]
+            price = prices[USD]
+            self._prices[id_] = Price(
+                price,
+                price * self._config.confidence_ratio_bps / 10000,
+                floor(time.time()),
+            )
         log.info("updated prices from CoinGecko", prices=self._prices)
 
-    def _get_price(self, id: Id) -> float:
+    def _get_price(self, id: Id) -> Optional[Price]:
         return self._prices.get(id, None)
 
     def latest_price(self, symbol: Symbol) -> Optional[Price]:
         id = self._symbol_to_id.get(symbol)
-        if not id:
+        if id is None:
             return None
-
-        price = self._get_price(id)
-        if not price:
-            return None
-        return Price(price, price * self._config.confidence_ratio_bps / 10000)
+        return self._get_price(id)

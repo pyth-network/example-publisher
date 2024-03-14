@@ -1,9 +1,9 @@
 import asyncio
+import time
 from typing import Dict, List, Optional
 from attr import define
 from structlog import get_logger
 from example_publisher.provider import Provider
-
 from example_publisher.providers.coin_gecko import CoinGecko
 from example_publisher.config import Config
 from example_publisher.providers.pyth_replicator import PythReplicator
@@ -45,6 +45,14 @@ class Publisher:
         )
         self.subscriptions: Dict[SubscriptionId, Product] = {}
         self.products: List[Product] = []
+        self.last_successful_update: Optional[float] = None
+
+    def is_healthy(self) -> bool:
+        return (
+            self.last_successful_update is not None
+            and time.time() - self.last_successful_update
+            < self.config.health_check_threshold_secs
+        )
 
     async def start(self):
         await self.pythd.connect()
@@ -140,6 +148,11 @@ class Publisher:
         )
         await self.pythd.update_price(
             product.price_account, scaled_price, scaled_conf, TRADING
+        )
+        self.last_successful_update = (
+            price.timestamp
+            if self.last_successful_update is None
+            else max(self.last_successful_update, price.timestamp)
         )
 
     def apply_exponent(self, x: float, exp: int) -> int:
