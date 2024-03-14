@@ -1,4 +1,5 @@
 import asyncio
+import time
 from typing import Dict, List, Optional
 from attr import define
 from structlog import get_logger
@@ -45,6 +46,13 @@ class Publisher:
         self.subscriptions: Dict[SubscriptionId, Product] = {}
         self.products: List[Product] = []
         self.last_successful_update: Optional[float] = None
+
+    def is_healthy(self) -> bool:
+        return (
+            self.last_successful_update is not None
+            and time.time() - self.last_successful_update
+            < self.config.health_check_threshold_secs
+        )
 
     async def start(self):
         await self.pythd.connect()

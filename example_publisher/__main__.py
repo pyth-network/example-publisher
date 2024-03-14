@@ -36,8 +36,6 @@ def main(config_path):
     )
 
     publisher = Publisher(config=config)
-
-    API.config = config
     API.publisher = publisher
 
     def run_server():
