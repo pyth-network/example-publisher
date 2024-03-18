@@ -33,6 +33,7 @@ pylint = "^2.16.2"
 pep8 = "^1.7.1"
 flake8 = "^6.0.0"
 pytest = "^6.2.0"
+pre-commit = "^3.6.2"
 
 [build-system]
 requires = ["poetry-core"]
