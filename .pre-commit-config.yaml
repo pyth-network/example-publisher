@@ -17,4 +17,4 @@ repos:
 - repo: https://github.com/fsouza/mirrors-pyright
   rev: v1.1.354
   hooks:
-  -   id: pyright
+  - id: pyright
