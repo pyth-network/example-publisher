@@ -264,21 +264,6 @@ files = [
 tests = ["PyHamcrest (>=2.0.2)", "mypy", "pytest (>=4.6)", "pytest-benchmark", "pytest-cov", "pytest-flake8"]
 
 [[package]]
-name = "cattrs"
-version = "22.2.0"
-description = "Composable complex class support for attrs and dataclasses."
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "cattrs-22.2.0-py3-none-any.whl", hash = "sha256:bc12b1f0d000b9f9bee83335887d532a1d3e99a833d1bf0882151c97d3e68c21"},
-    {file = "cattrs-22.2.0.tar.gz", hash = "sha256:f0eed5642399423cf656e7b66ce92cdc5b963ecafd041d1b24d136fdde7acf6d"},
-]
-
-[package.dependencies]
-attrs = ">=20"
-exceptiongroup = {version = "*", markers = "python_version < \"3.11\""}
-
-[[package]]
 name = "certifi"
 version = "2022.12.7"
 description = "Python package for providing Mozilla's CA Bundle."
@@ -489,22 +474,18 @@ files = [
 
 [[package]]
 name = "dataclasses-json"
-version = "0.5.7"
-description = "Easily serialize dataclasses to and from JSON"
+version = "0.6.4"
+description = "Easily serialize dataclasses to and from JSON."
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.7,<4.0"
 files = [
-    {file = "dataclasses-json-0.5.7.tar.gz", hash = "sha256:c2c11bc8214fbf709ffc369d11446ff6945254a7f09128154a7620613d8fda90"},
-    {file = "dataclasses_json-0.5.7-py3-none-any.whl", hash = "sha256:bc285b5f892094c3a53d558858a88553dd6a61a11ab1a8128a0e554385dcc5dd"},
+    {file = "dataclasses_json-0.6.4-py3-none-any.whl", hash = "sha256:f90578b8a3177f7552f4e1a6e535e84293cd5da421fcce0642d49c0d7bdf8df2"},
+    {file = "dataclasses_json-0.6.4.tar.gz", hash = "sha256:73696ebf24936560cca79a2430cbc4f3dd23ac7bf46ed17f38e5e5e7657a6377"},
 ]
 
 [package.dependencies]
-marshmallow = ">=3.3.0,<4.0.0"
-marshmallow-enum = ">=1.5.1,<2.0.0"
-typing-inspect = ">=0.4.0"
-
-[package.extras]
-dev = ["flake8", "hypothesis", "ipython", "mypy (>=0.710)", "portray", "pytest (>=6.2.3)", "simplejson", "types-dataclasses"]
+marshmallow = ">=3.18.0,<4.0.0"
+typing-inspect = ">=0.4.0,<1"
 
 [[package]]
 name = "dill"
@@ -876,20 +857,6 @@ dev = ["flake8 (==5.0.4)", "flake8-bugbear (==22.10.25)", "mypy (==0.990)", "pre
 docs = ["alabaster (==0.7.12)", "autodocsumm (==0.2.9)", "sphinx (==5.3.0)", "sphinx-issues (==3.0.1)", "sphinx-version-warning (==1.1.2)"]
 lint = ["flake8 (==5.0.4)", "flake8-bugbear (==22.10.25)", "mypy (==0.990)", "pre-commit (>=2.4,<3.0)"]
 tests = ["pytest", "pytz", "simplejson"]
-
-[[package]]
-name = "marshmallow-enum"
-version = "1.5.1"
-description = "Enum field for Marshmallow"
-optional = false
-python-versions = "*"
-files = [
-    {file = "marshmallow-enum-1.5.1.tar.gz", hash = "sha256:38e697e11f45a8e64b4a1e664000897c659b60aa57bfa18d44e226a9920b6e58"},
-    {file = "marshmallow_enum-1.5.1-py2.py3-none-any.whl", hash = "sha256:57161ab3dbfde4f57adeb12090f39592e992b9c86d206d02f6bd03ebec60f072"},
-]
-
-[package.dependencies]
-marshmallow = ">=2.0.0"
 
 [[package]]
 name = "mccabe"
@@ -1571,28 +1538,30 @@ files = [
 
 [[package]]
 name = "typed-settings"
-version = "2.0.2"
+version = "24.2.0"
 description = "Typed settings based on attrs classes"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.8"
 files = [
-    {file = "typed_settings-2.0.2-py3-none-any.whl", hash = "sha256:773cd3ae905db465983e422df0d74a39327c4288d957a0eea7391c127bd6c1fb"},
-    {file = "typed_settings-2.0.2.tar.gz", hash = "sha256:0181c0d71152d20f7d725a06223be2f25a0a4bf43f02d7b22e22c7f2b7fed8da"},
+    {file = "typed_settings-24.2.0-py3-none-any.whl", hash = "sha256:6788ecdb3bf42b561c8a61630588d26d5a3d09dda47c8027e29e6698796252d4"},
+    {file = "typed_settings-24.2.0.tar.gz", hash = "sha256:06ea2c7c89428020fe87b780ffafe813df3375445a4f77a293e772b01a4947e6"},
 ]
 
 [package.dependencies]
-attrs = ">=22.1"
-cattrs = ">=22.2"
 tomli = {version = ">=2", markers = "python_version < \"3.11\""}
 
 [package.extras]
-all = ["typed-settings[click,option-groups]"]
-click = ["click (>=7,<9)"]
-dev = ["nox", "safety", "typed-settings[docs,lint,test]"]
-docs = ["furo", "sphinx", "typed-settings[all]"]
-lint = ["autoflake", "bandit", "flake8 (>=4.0.0,<5.0.0)", "flake8-bandit", "flake8-black", "flake8-bugbear", "flake8-isort", "mypy", "typed-settings[all]", "types-toml"]
-option-groups = ["click (>=7,<9)", "click-option-group"]
-test = ["coverage[toml] (>=5.3)", "pytest (>=7.2.0)", "pytest-cov", "rich-click (>=1.6)", "typed-settings[all]", "typing-extensions"]
+all = ["typed-settings[attrs,cattrs,click,jinja,option-groups,pydantic]"]
+attrs = ["attrs (>=23.1)"]
+cattrs = ["cattrs (>=22.2)"]
+click = ["click (>=7)"]
+dev = ["nox", "pip-audit", "typed-settings[docs,lint,test]"]
+docs = ["furo (>=2023.9)", "myst-parser (>=2.0)", "sphinx (>=7.2)", "sphinx-copybutton (>=0.5.2)", "sphinx-inline-tabs (>=2023.4.21)", "typed-settings[all]"]
+jinja = ["jinja2"]
+lint = ["black", "mypy", "ruff", "typed-settings[all]", "types-toml"]
+option-groups = ["click (>=7)", "click-option-group"]
+pydantic = ["pydantic (>=2)"]
+test = ["coverage[toml] (>=5.3)", "pytest (>=7.2.0)", "pytest-cov", "rich-click (>=1.6)", "sybil (>=6)", "typed-settings[all]", "typing-extensions"]
 
 [[package]]
 name = "typing-extensions"
@@ -2062,4 +2031,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "aa62f4f82930606c84e89509537d6065c54f34f1a9989eba4b914a5c385e90ea"
+content-hash = "d0ceba2708fb1bd33149631f2021aa34bba6aa40c62a755df4cad746db76d78a"
