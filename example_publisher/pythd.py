@@ -2,8 +2,8 @@ import asyncio
 from dataclasses import dataclass, field
 import sys
 import traceback
-from dataclasses_json import config, dataclass_json
-from typing import Awaitable, Callable, List
+from dataclasses_json import config, DataClassJsonMixin
+from typing import Callable, Coroutine, List
 from structlog import get_logger
 from jsonrpc_websocket import Server
 
@@ -15,22 +15,19 @@ Status = str
 TRADING = "trading"
 
 
-@dataclass_json
 @dataclass
-class Price:
+class Price(DataClassJsonMixin):
     account: str
     exponent: int = field(metadata=config(field_name="price_exponent"))
 
 
-@dataclass_json
 @dataclass
-class Metadata:
+class Metadata(DataClassJsonMixin):
     symbol: str
 
 
-@dataclass_json
 @dataclass
-class Product:
+class Product(DataClassJsonMixin):
     account: str
     metadata: Metadata = field(metadata=config(field_name="attr_dict"))
     prices: List[Price] = field(metadata=config(field_name="price"))
@@ -38,14 +35,16 @@ class Product:
 
 class Pythd:
     def __init__(
-        self, address: str, on_notify_price_sched: Callable[[SubscriptionId], Awaitable]
+        self,
+        address: str,
+        on_notify_price_sched: Callable[[SubscriptionId], Coroutine[None, None, None]],
     ) -> None:
         self.address = address
-        self.server: Server = None
+        self.server: Server
         self.on_notify_price_sched = on_notify_price_sched
         self._tasks = set()
 
-    async def connect(self) -> Server:
+    async def connect(self):
         self.server = Server(self.address)
         self.server.notify_price_sched = self._notify_price_sched
         task = await self.server.ws_connect()

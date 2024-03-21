@@ -32,12 +32,20 @@ class Publisher:
         if not getattr(self.config, self.config.provider_engine):
             raise ValueError(f"Missing {self.config.provider_engine} config")
 
-        if self.config.provider_engine == "coin_gecko":
+        if (
+            self.config.provider_engine == "coin_gecko"
+            and config.coin_gecko is not None
+        ):
             self.provider = CoinGecko(config.coin_gecko)
-        elif self.config.provider_engine == "pyth_replicator":
+        elif (
+            self.config.provider_engine == "pyth_replicator"
+            and config.pyth_replicator is not None
+        ):
             self.provider: Provider = PythReplicator(config.pyth_replicator)
         else:
-            raise ValueError(f"Unknown provider {self.config.provider_engine}")
+            raise ValueError(
+                f"Unknown provider {self.config.provider_engine}, possibly the env variables are not set."
+            )
 
         self.pythd: Pythd = Pythd(
             address=config.pythd.endpoint,
