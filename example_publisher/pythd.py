@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 import sys
 import traceback
 from dataclasses_json import config, DataClassJsonMixin
-from typing import Any, Callable, Coroutine, List
+from typing import Callable, Coroutine, List
 from structlog import get_logger
 from jsonrpc_websocket import Server
 
@@ -37,7 +37,7 @@ class Pythd:
     def __init__(
         self,
         address: str,
-        on_notify_price_sched: Callable[[SubscriptionId], Coroutine[Any, Any, None]],
+        on_notify_price_sched: Callable[[SubscriptionId], Coroutine[None, None, None]],
     ) -> None:
         self.address = address
         self.server: Server

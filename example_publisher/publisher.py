@@ -44,7 +44,7 @@ class Publisher:
             self.provider: Provider = PythReplicator(config.pyth_replicator)
         else:
             raise ValueError(
-                f"Unknown provider {self.config.provider_engine}, possibly the env variables is not set."
+                f"Unknown provider {self.config.provider_engine}, possibly the env variables are not set."
             )
 
         self.pythd: Pythd = Pythd(
