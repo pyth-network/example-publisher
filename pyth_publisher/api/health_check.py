@@ -1,6 +1,6 @@
 from fastapi import FastAPI, status
 from fastapi.responses import JSONResponse
-from example_publisher.publisher import Publisher
+from pyth_publisher.publisher import Publisher
 
 
 class API(FastAPI):

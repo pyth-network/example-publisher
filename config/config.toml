@@ -24,5 +24,5 @@ endpoint = 'ws://127.0.0.1:8910'
 [publisher.pyth_replicator]
 http_endpoint = 'https://pythnet.rpcpool.com'
 ws_endpoint = 'wss://pythnet.rpcpool.com'
-first_mapping = 'AHtgzX45WTKfkPG53L6WYhGEXwQkN1BVknET3sVsLL8J'
-program_key = 'FsJ3A3u2vn5cTVofAjvy6y5kwABJAqYWpe4975bi2epH'
+first_mapping = 'AFmdnt9ng1uVxqCmqwQJDAYC5cKTkw8gJKSM5PnzuF6z'
+program_key = '8tfDNiaEyrV6Q1U4DEXrEigs9DoDtkugzFbybENEbCDz'

@@ -3,11 +3,11 @@ import time
 from typing import Dict, List, Optional
 from attr import define
 from structlog import get_logger
-from example_publisher.provider import Provider
-from example_publisher.providers.coin_gecko import CoinGecko
-from example_publisher.config import Config
-from example_publisher.providers.pyth_replicator import PythReplicator
-from example_publisher.pythd import Pythd, SubscriptionId
+from pyth_publisher.provider import Provider
+from pyth_publisher.providers.coin_gecko import CoinGecko
+from pyth_publisher.config import Config
+from pyth_publisher.providers.pyth_replicator import PythReplicator
+from pyth_publisher.pythd import Pythd, SubscriptionId
 
 
 log = get_logger()

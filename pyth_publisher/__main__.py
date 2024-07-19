@@ -3,13 +3,13 @@ import os
 import sys
 import threading
 import uvicorn
-from example_publisher.config import Config
-from example_publisher.publisher import Publisher
+from pyth_publisher.config import Config
+from pyth_publisher.publisher import Publisher
 import typed_settings as ts
 import click
 import logging
 import structlog
-from example_publisher.api.health_check import app, API
+from pyth_publisher.api.health_check import app, API
 
 _DEFAULT_CONFIG_PATH = os.path.join("config", "config.toml")
 
