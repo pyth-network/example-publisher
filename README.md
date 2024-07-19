@@ -19,18 +19,11 @@ An example configuration file can be found in [`config/config.toml`](config/conf
 - Activate it with `conda activate pyth-dev`
 - Install dependencies with `pip install -r requirements/requirements.txt` 
 
-## Run TODO - update run instructions
+## Run
 
-[Poetry](https://python-poetry.org/docs/) is used to manage the dependencies and run the tests. If you don't have it installed, you can install following the instructions [here](https://python-poetry.org/docs/#installation).
-
+To run the publisher, execute the following command:
 ```bash
-# Install the dependencies
-poetry install
-
-# Run the tests
-poetry run pytest
-
-# Run the publisher
-poetry run example-publisher --config config/config.toml
+python pyth_publisher
 ```
 
+The config used is at `config/config.yaml`.

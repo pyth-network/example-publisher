@@ -1,0 +1,17 @@
+publisher:
+  # Set it to either 'coin_gecko' or 'pyth_replicator'. You need to provide
+  # the configuration for the chosen engine as described below.
+  provider_engine: 'pyth_replicator'
+  product_update_interval_secs: 10
+  health_check_port: 8000
+  # The health check will return a failure status if no price data has been published within the specified time frame.
+  health_check_threshold_secs: 60
+
+  pythd:
+    endpoint: 'ws://127.0.0.1:8910'
+
+  pyth_replicator:
+    http_endpoint: 'https://pythnet.rpcpool.com'
+    ws_endpoint: 'wss://pythnet.rpcpool.com'
+    first_mapping: 'AHtgzX45WTKfkPG53L6WYhGEXwQkN1BVknET3sVsLL8J'
+    program_key: 'FsJ3A3u2vn5cTVofAjvy6y5kwABJAqYWpe4975bi2epH'
