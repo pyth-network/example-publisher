@@ -1,5 +1,7 @@
+import os
 from typing import List, Optional
 import typed_settings as ts
+import yaml
 
 
 @ts.settings
@@ -52,3 +54,32 @@ class Config:
     product_update_interval_secs: int = ts.option(default=60)
     coin_gecko: Optional[CoinGeckoConfig] = ts.option(default=None)
     pyth_replicator: Optional[PythReplicatorConfig] = ts.option(default=None)
+
+
+def load_config(config_path: str) -> Config:
+    with open(config_path, "r") as file:
+        config_dict = yaml.safe_load(file)
+
+    pythd = Pythd(**config_dict["publisher"]["pythd"])
+
+    return Config(
+        provider_engine=config_dict["publisher"]["provider_engine"],
+        pythd=pythd,
+        health_check_port=config_dict["publisher"]["health_check_port"],
+        health_check_threshold_secs=config_dict["publisher"][
+            "health_check_threshold_secs"
+        ],
+        product_update_interval_secs=config_dict["publisher"][
+            "product_update_interval_secs"
+        ],
+        pyth_replicator=PythReplicatorConfig(
+            **config_dict["publisher"]["pyth_replicator"]
+        ),
+    )
+
+
+_DEFAULT_CONFIG_PATH = os.path.join(
+    os.path.dirname(__file__), "..", "config", "config.yaml"
+)
+config_path = _DEFAULT_CONFIG_PATH
+config = load_config(config_path)

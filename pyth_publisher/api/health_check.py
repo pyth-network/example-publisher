@@ -23,9 +23,6 @@ def health_check():
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
         )
     return JSONResponse(
-        content={
-            "status": "ok",
-            "last_successful_update": last_successful_update,
-        },
+        content={"status": "ok", "last_successful_update": last_successful_update},
         status_code=status.HTTP_200_OK,
     )
