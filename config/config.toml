@@ -1,6 +1,6 @@
 [publisher]
 
-# Set it to either 'coin_gecko' or 'pyth_replicator'. You need to provide
+# Set it to 'coin_gecko', 'pyth_replicator' or 'hermes'. You need to provide
 # the configuration for the chosen engine as described below.
 provider_engine = 'pyth_replicator'
 
@@ -20,6 +20,10 @@ endpoint = 'ws://127.0.0.1:8910'
 # [[publisher.coin_gecko.products]]
 # symbol = 'Crypto.BTC/USD'
 # coin_gecko_id = 'bitcoin'
+
+# [publisher.hermes]
+# http_endpoint = 'https://hermes.pyth.network'
+# ws_endpoint = 'wss://hermes.pyth.network'
 
 [publisher.pyth_replicator]
 http_endpoint = 'https://pythnet.rpcpool.com'
