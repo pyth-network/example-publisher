@@ -42,6 +42,10 @@ class PythReplicatorConfig:
     manual_agg_max_slot_diff: int = ts.option(default=25)
     account_update_interval_secs: int = ts.option(default=300)
 
+@ts.settings
+class HermesConfig:
+    http_endpoint: str
+    ws_endpoint: str
 
 @ts.settings
 class Config:
@@ -52,3 +56,4 @@ class Config:
     product_update_interval_secs: int = ts.option(default=60)
     coin_gecko: Optional[CoinGeckoConfig] = ts.option(default=None)
     pyth_replicator: Optional[PythReplicatorConfig] = ts.option(default=None)
+    hermes: Optional[HermesConfig] = ts.option(default=None)

@@ -24,7 +24,7 @@ numpy = "^1.24.2"
 jsonrpc-websocket = "^3.1.4"
 pycoingecko = "^2.2.0"
 typed-settings = "24.2.0"
-pythclient = "^0.1.4,"
+pythclient = "^0.1.24,"
 fastapi = "^0.110.0"
 uvicorn = {extras = ["standard"], version = "^0.28.0"}
 
