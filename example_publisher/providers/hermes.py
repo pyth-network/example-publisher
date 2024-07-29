@@ -40,8 +40,5 @@ class Hermes(Provider):
             if ws_task.done():
                 break
             print("Latest prices:")
-            for symbol, price_feed in self._client.prices_dict.items():
-                print(f"Symbol: {symbol},"
-                      f" Price: {price_feed['price'].price},"
-                      f" Confidence: {price_feed['price'].conf},"
-                      f" Time: {price_feed['price'].publish_time}")
+            for symbol, price in self._client.prices_dict.items():
+                print(f"Symbol: {symbol}, Price: {price.price}, Confidence: {price.conf}, Time: {price.publish_time}")
