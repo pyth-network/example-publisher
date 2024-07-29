@@ -1,8 +1,6 @@
 import asyncio
 from typing import List, Optional
 from pythclient.hermes import HermesClient
-# from pythclient.pythaccounts import PythPriceAccount, PythPriceStatus
-
 
 from structlog import get_logger
 
@@ -33,17 +31,6 @@ class Hermes(Provider):
         )
 
     async def _get_hermes_prices(self):
-        # feed_ids = await self._client.get_price_feed_ids()
-        # feed_ids_rel = feed_ids[:2]
-
-        # self._client.add_feed_ids(feed_ids_rel)
-
-        # prices_latest = await self._client.get_all_prices(version=version_http)
-
-        # print("Initial prices")
-        # for feed_id, price_feed in prices_latest.items():
-        # print(f"Feed ID: {feed_id}, Price: {price_feed['price'].price}, Confidence: {price_feed['price'].conf}, Time: {price_feed['price'].publish_time}")
-
         print("Starting web socket...")
         ws_call = self._client.ws_pyth_prices(version=1)
         ws_task = asyncio.create_task(ws_call)
@@ -52,6 +39,6 @@ class Hermes(Provider):
             await asyncio.sleep(5)
             if ws_task.done():
                 break
-            # print("Latest prices:")
-            # for feed_id, price_feed in self._client.prices_dict.items():
-            #     print(f"Feed ID: {feed_id}, Price: {price_feed['price'].price}, Confidence: {price_feed['price'].conf}, Time: {price_feed['price'].publish_time}")
+            print("Latest prices:")
+            for symbol, price_feed in self._client.prices_dict.items():
+                print(f"Symbol: {symbol}, Price: {price_feed['price'].price}, Confidence: {price_feed['price'].conf}, Time: {price_feed['price'].publish_time}")
