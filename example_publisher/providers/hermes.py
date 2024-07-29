@@ -1,6 +1,6 @@
 import asyncio
 from typing import List, Optional
-from pythclient.hermes import HermesClient
+from pythclient.hermes import HermesClient, PriceFeed
 
 from structlog import get_logger
 
@@ -41,4 +41,4 @@ class Hermes(Provider):
                 break
             print("Latest prices:")
             for symbol, price in self._client.prices_dict.items():
-                print(f"Symbol: {symbol}, Price: {price.price}, Confidence: {price.conf}, Time: {price.publish_time}")
+                print(f"Symbol: {symbol}, Feed ID: {price.feed_id}, Price: {price.price}, Confidence: {price.conf}, Time: {price.publish_time}")
