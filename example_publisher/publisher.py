@@ -17,6 +17,7 @@ TRADING = "trading"
 
 @define
 class Product:
+    generic_symbol: str
     symbol: str
     product_account: str
     price_account: str
@@ -81,26 +82,27 @@ class Publisher:
     async def _upd_products(self):
         log.debug("fetching product accounts from Pythd")
         pythd_products = {
-            product.metadata.symbol: product
+            product.metadata.generic_symbol: product
             for product in await self.pythd.all_products()
         }
         log.debug("fetched product accounts from Pythd", products=pythd_products)
 
-        old_products_by_symbol = {product.symbol: product for product in self.products}
+        old_products_by_generic_symbol = {product.generic_symbol: product for product in self.products}
 
         self.products = []
 
-        for symbol, product in pythd_products.items():
+        for generic_symbol, product in pythd_products.items():
             if not product.prices:
                 continue
 
             subscription_id = None
-            if old_product := old_products_by_symbol.get(symbol):
+            if old_product := old_products_by_generic_symbol.get(generic_symbol):
                 subscription_id = old_product.subscription_id
 
             self.products.append(
                 Product(
-                    symbol,
+                    generic_symbol,
+                    product.metadata.symbol,
                     product.account,
                     product.prices[0].account,
                     product.prices[0].exponent,
