@@ -87,7 +87,9 @@ class Publisher:
         }
         log.debug("fetched product accounts from Pythd", products=pythd_products)
 
-        old_products_by_generic_symbol = {product.generic_symbol: product for product in self.products}
+        old_products_by_generic_symbol = {
+            product.generic_symbol: product for product in self.products
+        }
 
         self.products = []
 
