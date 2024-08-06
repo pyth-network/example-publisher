@@ -24,6 +24,7 @@ class Price(DataClassJsonMixin):
 @dataclass
 class Metadata(DataClassJsonMixin):
     symbol: str
+    generic_symbol: str
 
 
 @dataclass
