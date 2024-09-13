@@ -1,5 +1,7 @@
 from dataclasses import dataclass, field
-from dataclasses_json import config, DataClassJsonMixin
+import json
+from dataclasses_json import config, DataClassJsonMixin, dataclass_json
+from dataclasses_json.undefined import Undefined
 from typing import List, Any, Optional
 from structlog import get_logger
 from websockets.client import connect, WebSocketClientProtocol
@@ -13,6 +15,7 @@ Status = str
 TRADING = "trading"
 
 
+@dataclass_json(undefined=Undefined.EXCLUDE)
 @dataclass
 class Price(DataClassJsonMixin):
     account: str
@@ -27,6 +30,7 @@ class PriceUpdate(DataClassJsonMixin):
     status: str
 
 
+@dataclass_json(undefined=Undefined.EXCLUDE)
 @dataclass
 class Metadata(DataClassJsonMixin):
     symbol: str
@@ -51,8 +55,8 @@ class JSONRPCRequest(DataClassJsonMixin):
 @dataclass
 class JSONRPCResponse(DataClassJsonMixin):
     id: int
-    result: Optional[Any]
-    error: Optional[Any]
+    result: Optional[Any] = None
+    error: Optional[Any] = None
     jsonrpc: str = "2.0"
 
 
@@ -87,7 +91,9 @@ class Pythd:
         self, requests: List[JSONRPCRequest]
     ) -> List[JSONRPCResponse]:
         async with self.lock:
-            await self.client.send(JSONRPCRequest.schema().dumps(requests, many=True))
+            await self.client.send(
+                json.dumps([request.to_dict() for request in requests])
+            )
             response = await self.client.recv()
             return JSONRPCResponse.schema().loads(response, many=True)
 
