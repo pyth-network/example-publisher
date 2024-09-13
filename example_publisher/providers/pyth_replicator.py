@@ -43,7 +43,7 @@ class PythReplicator(Provider):
 
         while True:
             update = await self._ws.next_update()
-            log.trace("Received a WS update", account_key=update.key, slot=update.slot)
+            log.debug("Received a WS update", account_key=update.key, slot=update.slot)
             if isinstance(update, PythPriceAccount) and update.product is not None:
                 symbol = update.product.symbol
 
@@ -102,7 +102,7 @@ class PythReplicator(Provider):
                             update.timestamp,
                         )
 
-                log.info(
+                log.debug(
                     "Received a price update", symbol=symbol, price=self._prices[symbol]
                 )
 

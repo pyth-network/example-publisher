@@ -65,11 +65,11 @@ class Publisher:
     async def start(self):
         await self.pythd.connect()
 
-        self._product_update_task = asyncio.create_task(self._product_update_loop())
+        await self._upd_products()
 
+        self._product_update_task = asyncio.create_task(self._product_update_loop())
         self._price_update_task = asyncio.create_task(self._price_update_loop())
 
-        await self._upd_products()
         self.provider.start()
 
     async def _product_update_loop(self):
@@ -132,6 +132,15 @@ class Publisher:
                         status=TRADING,
                     )
                 )
+                log.debug(
+                    "sending price update",
+                    symbol=product.symbol,
+                    price_account=product.price_account,
+                    price=price.price,
+                    conf=price.conf,
+                    scaled_price=scaled_price,
+                    scaled_conf=scaled_conf,
+                )
 
                 self.last_successful_update = (
                     price.timestamp
@@ -142,6 +151,7 @@ class Publisher:
             log.info(
                 "sending batch update_price",
                 num_price_updates=len(price_updates),
+                total_products=len(self.products),
             )
 
             await self.pythd.update_price_batch(price_updates)
