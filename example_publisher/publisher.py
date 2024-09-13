@@ -7,7 +7,7 @@ from example_publisher.provider import Provider
 from example_publisher.providers.coin_gecko import CoinGecko
 from example_publisher.config import Config
 from example_publisher.providers.pyth_replicator import PythReplicator
-from example_publisher.pythd import Pythd, SubscriptionId
+from example_publisher.pythd import PriceUpdate, Pythd, SubscriptionId
 
 
 log = get_logger()
@@ -114,6 +114,7 @@ class Publisher:
 
     async def _price_update_loop(self):
         while True:
+            price_updates = []
             for product in self.products:
                 price = self.provider.latest_price(product.symbol)
                 if not price:
@@ -123,22 +124,27 @@ class Publisher:
                 scaled_price = self.apply_exponent(price.price, product.exponent)
                 scaled_conf = self.apply_exponent(price.conf, product.exponent)
 
-                log.info(
-                    "sending update_price",
-                    product_account=product.product_account,
-                    price_account=product.price_account,
-                    price=scaled_price,
-                    conf=scaled_conf,
-                    symbol=product.symbol,
+                price_updates.append(
+                    PriceUpdate(
+                        account=product.price_account,
+                        price=scaled_price,
+                        conf=scaled_conf,
+                        status=TRADING,
+                    )
                 )
-                await self.pythd.update_price(
-                    product.price_account, scaled_price, scaled_conf, TRADING
-                )
+
                 self.last_successful_update = (
                     price.timestamp
                     if self.last_successful_update is None
                     else max(self.last_successful_update, price.timestamp)
                 )
+
+            log.info(
+                "sending batch update_price",
+                num_price_updates=len(price_updates),
+            )
+
+            await self.pythd.update_price_batch(price_updates)
 
             await asyncio.sleep(self.config.price_update_interval_secs)
 
