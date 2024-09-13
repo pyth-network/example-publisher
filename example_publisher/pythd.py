@@ -82,6 +82,10 @@ class Pythd:
         )
 
     async def send_request(self, request: JSONRPCRequest) -> JSONRPCResponse:
+        # Using a lock will result in a synchronous execution of the send_request method
+        # and response retrieval which makes the code easier but is not good for performance.
+        # It is not recommended to use this behaviour where there are concurrent requests
+        # being made to the server.
         async with self.lock:
             await self.client.send(request.to_json())
             response = await self.client.recv()
