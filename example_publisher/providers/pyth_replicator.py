@@ -102,7 +102,7 @@ class PythReplicator(Provider):
                             update.timestamp,
                         )
 
-                log.info(
+                log.debug(
                     "Received a price update", symbol=symbol, price=self._prices[symbol]
                 )
 
@@ -118,7 +118,7 @@ class PythReplicator(Provider):
 
             await asyncio.sleep(self._config.account_update_interval_secs)
 
-    def upd_products(self, *args) -> None:
+    def upd_products(self, product_symbols: List[Symbol]) -> None:
         # This provider stores all the possible feeds and
         # does not care about the desired products as knowing
         # them does not improve the performance of the replicator

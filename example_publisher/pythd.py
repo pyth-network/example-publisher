@@ -1,11 +1,11 @@
-import asyncio
 from dataclasses import dataclass, field
-import sys
-import traceback
-from dataclasses_json import config, DataClassJsonMixin
-from typing import Callable, Coroutine, List
+import json
+from dataclasses_json import config, DataClassJsonMixin, dataclass_json
+from dataclasses_json.undefined import Undefined
+from typing import List, Any, Optional
 from structlog import get_logger
-from jsonrpc_websocket import Server
+from websockets.client import connect, WebSocketClientProtocol
+from asyncio import Lock
 
 log = get_logger()
 
@@ -15,12 +15,22 @@ Status = str
 TRADING = "trading"
 
 
+@dataclass_json(undefined=Undefined.EXCLUDE)
 @dataclass
 class Price(DataClassJsonMixin):
     account: str
     exponent: int = field(metadata=config(field_name="price_exponent"))
 
 
+@dataclass
+class PriceUpdate(DataClassJsonMixin):
+    account: str
+    price: int
+    conf: int
+    status: str
+
+
+@dataclass_json(undefined=Undefined.EXCLUDE)
 @dataclass
 class Metadata(DataClassJsonMixin):
     symbol: str
@@ -34,56 +44,77 @@ class Product(DataClassJsonMixin):
     prices: List[Price] = field(metadata=config(field_name="price"))
 
 
+@dataclass
+class JSONRPCRequest(DataClassJsonMixin):
+    id: int
+    method: str
+    params: List[Any] | Any
+    jsonrpc: str = "2.0"
+
+
+@dataclass
+class JSONRPCResponse(DataClassJsonMixin):
+    id: int
+    result: Optional[Any] = None
+    error: Optional[Any] = None
+    jsonrpc: str = "2.0"
+
+
 class Pythd:
     def __init__(
         self,
         address: str,
-        on_notify_price_sched: Callable[[SubscriptionId], Coroutine[None, None, None]],
     ) -> None:
         self.address = address
-        self.server: Server
-        self.on_notify_price_sched = on_notify_price_sched
-        self._tasks = set()
+        self.client: WebSocketClientProtocol
+        self.id_counter = 0
+        self.lock = Lock()
 
     async def connect(self):
-        self.server = Server(self.address)
-        self.server.notify_price_sched = self._notify_price_sched
-        task = await self.server.ws_connect()
-        task.add_done_callback(Pythd._on_connection_done)
-        self._tasks.add(task)
+        self.client = await connect(self.address)
 
-    @staticmethod
-    def _on_connection_done(task):
-        log.error("pythd connection closed")
-        if not task.cancelled() and task.exception() is not None:
-            e = task.exception()
-            traceback.print_exception(None, e, e.__traceback__)
-        sys.exit(1)
-
-    async def subscribe_price_sched(self, account: str) -> int:
-        subscription = (await self.server.subscribe_price_sched(account=account))[
-            "subscription"
-        ]
-        log.debug(
-            "subscribed to price_sched", account=account, subscription=subscription
+    def _create_request(self, method: str, params: List[Any] | Any) -> JSONRPCRequest:
+        self.id_counter += 1
+        return JSONRPCRequest(
+            id=self.id_counter,
+            method=method,
+            params=params,
         )
-        return subscription
 
-    def _notify_price_sched(self, subscription: int) -> None:
-        log.debug("notify_price_sched RPC call received", subscription=subscription)
-        task = asyncio.get_event_loop().create_task(
-            self.on_notify_price_sched(subscription)
-        )
-        self._tasks.add(task)
-        task.add_done_callback(self._tasks.discard)
+    async def send_request(self, request: JSONRPCRequest) -> JSONRPCResponse:
+        # Using a lock will result in a synchronous execution of the send_request method
+        # and response retrieval which makes the code easier but is not good for performance.
+        # It is not recommended to use this behaviour where there are concurrent requests
+        # being made to the server.
+        async with self.lock:
+            await self.client.send(request.to_json())
+            response = await self.client.recv()
+            return JSONRPCResponse.from_json(response)
+
+    async def send_batch_request(
+        self, requests: List[JSONRPCRequest]
+    ) -> List[JSONRPCResponse]:
+        async with self.lock:
+            await self.client.send(
+                json.dumps([request.to_dict() for request in requests])
+            )
+            response = await self.client.recv()
+            return JSONRPCResponse.schema().loads(response, many=True)
 
     async def all_products(self) -> List[Product]:
-        result = await self.server.get_product_list()
-        return [Product.from_dict(d) for d in result]
+        request = self._create_request("get_product_list", [])
+        result = await self.send_request(request)
+        if result.result:
+            return Product.schema().load(result.result, many=True)
+        else:
+            raise ValueError(f"Error fetching products: {result.to_json()}")
 
-    async def update_price(
-        self, account: str, price: int, conf: int, status: str
-    ) -> None:
-        await self.server.update_price(
-            account=account, price=price, conf=conf, status=status
-        )
+    async def update_price_batch(self, price_updates: List[PriceUpdate]) -> None:
+        requests = [
+            self._create_request("update_price", price_update.to_dict())
+            for price_update in price_updates
+        ]
+        results = await self.send_batch_request(requests)
+        if any(result.error for result in results):
+            results_json_str = JSONRPCResponse.schema().dumps(results, many=True)
+            raise ValueError(f"Error updating prices: {results_json_str}")

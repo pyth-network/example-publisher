@@ -4,7 +4,8 @@
 # the configuration for the chosen engine as described below.
 provider_engine = 'pyth_replicator'
 
-product_update_interval_secs = 10
+price_update_interval_secs = 1.0
+product_update_interval_secs = 60
 health_check_port = 8000
 
 # The health check will return a failure status if no price data has been published within the specified time frame.
@@ -22,7 +23,7 @@ endpoint = 'ws://127.0.0.1:8910'
 # coin_gecko_id = 'bitcoin'
 
 [publisher.pyth_replicator]
-http_endpoint = 'https://pythnet.rpcpool.com'
-ws_endpoint = 'wss://pythnet.rpcpool.com'
+http_endpoint = 'https://api2.pythnet.pyth.network'
+ws_endpoint = 'wss://api2.pythnet.pyth.network'
 first_mapping = 'AHtgzX45WTKfkPG53L6WYhGEXwQkN1BVknET3sVsLL8J'
 program_key = 'FsJ3A3u2vn5cTVofAjvy6y5kwABJAqYWpe4975bi2epH'

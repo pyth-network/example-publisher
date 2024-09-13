@@ -14,7 +14,7 @@ from example_publisher.api.health_check import app, API
 _DEFAULT_CONFIG_PATH = os.path.join("config", "config.toml")
 
 
-log_level = logging._nameToLevel[os.environ.get("LOG_LEVEL", "DEBUG").upper()]
+log_level = logging._nameToLevel[os.environ.get("LOG_LEVEL", "INFO").upper()]
 structlog.configure(wrapper_class=structlog.make_filtering_bound_logger(log_level))
 
 log = structlog.get_logger()

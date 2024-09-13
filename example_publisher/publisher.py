@@ -7,7 +7,7 @@ from example_publisher.provider import Provider
 from example_publisher.providers.coin_gecko import CoinGecko
 from example_publisher.config import Config
 from example_publisher.providers.pyth_replicator import PythReplicator
-from example_publisher.pythd import Pythd, SubscriptionId
+from example_publisher.pythd import PriceUpdate, Pythd, SubscriptionId
 
 
 log = get_logger()
@@ -50,7 +50,6 @@ class Publisher:
 
         self.pythd: Pythd = Pythd(
             address=config.pythd.endpoint,
-            on_notify_price_sched=self.on_notify_price_sched,
         )
         self.subscriptions: Dict[SubscriptionId, Product] = {}
         self.products: List[Product] = []
@@ -66,18 +65,17 @@ class Publisher:
     async def start(self):
         await self.pythd.connect()
 
-        self._product_update_task = asyncio.create_task(
-            self._start_product_update_loop()
-        )
-
-    async def _start_product_update_loop(self):
         await self._upd_products()
+
+        self._product_update_task = asyncio.create_task(self._product_update_loop())
+        self._price_update_task = asyncio.create_task(self._price_update_loop())
+
         self.provider.start()
 
+    async def _product_update_loop(self):
         while True:
-            await self._upd_products()
-            await self._subscribe_notify_price_sched()
             await asyncio.sleep(self.config.product_update_interval_secs)
+            await self._upd_products()
 
     async def _upd_products(self):
         log.debug("fetching product accounts from Pythd")
@@ -114,58 +112,51 @@ class Publisher:
 
         self.provider.upd_products([product.symbol for product in self.products])
 
-    async def _subscribe_notify_price_sched(self):
-        # Subscribe to Pythd's notify_price_sched for each product that
-        # is not subscribed yet. Unfortunately there is no way to unsubscribe
-        # to the prices that are no longer available.
-        log.debug("subscribing to notify_price_sched")
+    async def _price_update_loop(self):
+        while True:
+            price_updates = []
+            for product in self.products:
+                price = self.provider.latest_price(product.symbol)
+                if not price:
+                    log.info("latest price not available", symbol=product.symbol)
+                    continue
 
-        subscriptions = {}
-        for product in self.products:
-            if not product.subscription_id:
-                subscription_id = await self.pythd.subscribe_price_sched(
-                    product.price_account
+                scaled_price = self.apply_exponent(price.price, product.exponent)
+                scaled_conf = self.apply_exponent(price.conf, product.exponent)
+
+                price_updates.append(
+                    PriceUpdate(
+                        account=product.price_account,
+                        price=scaled_price,
+                        conf=scaled_conf,
+                        status=TRADING,
+                    )
                 )
-                product.subscription_id = subscription_id
+                log.debug(
+                    "sending price update",
+                    symbol=product.symbol,
+                    price_account=product.price_account,
+                    price=price.price,
+                    conf=price.conf,
+                    scaled_price=scaled_price,
+                    scaled_conf=scaled_conf,
+                )
 
-            subscriptions[product.subscription_id] = product
+                self.last_successful_update = (
+                    price.timestamp
+                    if self.last_successful_update is None
+                    else max(self.last_successful_update, price.timestamp)
+                )
 
-        self.subscriptions = subscriptions
+            log.info(
+                "sending batch update_price",
+                num_price_updates=len(price_updates),
+                total_products=len(self.products),
+            )
 
-    async def on_notify_price_sched(self, subscription: int) -> None:
+            await self.pythd.update_price_batch(price_updates)
 
-        log.debug("received notify_price_sched", subscription=subscription)
-        if subscription not in self.subscriptions:
-            return
-
-        # Look up the current price and confidence interval of the product
-        product = self.subscriptions[subscription]
-        price = self.provider.latest_price(product.symbol)
-        if not price:
-            log.info("latest price not available", symbol=product.symbol)
-            return
-
-        # Scale the price and confidence interval using the Pyth exponent
-        scaled_price = self.apply_exponent(price.price, product.exponent)
-        scaled_conf = self.apply_exponent(price.conf, product.exponent)
-
-        # Send the price update
-        log.info(
-            "sending update_price",
-            product_account=product.product_account,
-            price_account=product.price_account,
-            price=scaled_price,
-            conf=scaled_conf,
-            symbol=product.symbol,
-        )
-        await self.pythd.update_price(
-            product.price_account, scaled_price, scaled_conf, TRADING
-        )
-        self.last_successful_update = (
-            price.timestamp
-            if self.last_successful_update is None
-            else max(self.last_successful_update, price.timestamp)
-        )
+            await asyncio.sleep(self.config.price_update_interval_secs)
 
     def apply_exponent(self, x: float, exp: int) -> int:
         return int(x * (10 ** (-exp)))
