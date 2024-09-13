@@ -43,7 +43,7 @@ class PythReplicator(Provider):
 
         while True:
             update = await self._ws.next_update()
-            log.debug("Received a WS update", account_key=update.key, slot=update.slot)
+            log.trace("Received a WS update", account_key=update.key, slot=update.slot)
             if isinstance(update, PythPriceAccount) and update.product is not None:
                 symbol = update.product.symbol
 
@@ -118,7 +118,7 @@ class PythReplicator(Provider):
 
             await asyncio.sleep(self._config.account_update_interval_secs)
 
-    def upd_products(self, *args) -> None:
+    def upd_products(self, product_symbols: List[Symbol]) -> None:
         # This provider stores all the possible feeds and
         # does not care about the desired products as knowing
         # them does not improve the performance of the replicator
